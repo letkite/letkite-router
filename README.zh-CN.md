@@ -89,8 +89,6 @@ wget -qO- https://get.letkite.com/install.sh | sh
 
 **暂停**会断开 agent：30 分钟、1 小时、1 天、自定时长，或者直到手动恢复。**权限**页显示路由器本地的上限（见[权限](#权限)）。**日志**页显示 `logread` 里 agent 的日志。
 
-> **agent 1.5.0。** LuCI 里的配对、完整状态和权限开关要用到 1.5.0 还没有的 agent 命令：`status --json`、`enroll --no-browser --json` 和 `ceiling show|set`。之后的 agent 版本会加上。在那之前，LuCI 显示基本状态（版本、是否已配对、服务是否在运行）和日志；配对请通过 SSH 运行控制台给出的命令。agent 会自动升级，升级后 LuCI 就有这些功能，不用重新安装。
-
 ## 权限
 
 路由器本地的上限 `/etc/letkite/ceiling.toml`：无论你的 LetKite 账户允许什么，AI 助手在这台路由器上最多只能做这些。控制台只能在它以内收紧，不能超出。只有 root 能改。**服务 → LetKite → 权限**页显示它。

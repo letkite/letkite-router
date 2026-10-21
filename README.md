@@ -89,8 +89,6 @@ To pair the router as part of the install, use the command shown in the [dashboa
 
 **Pause** disconnects the agent for 30 minutes, an hour, a day, a custom time, or until you resume it. **Permissions** shows the router's local ceiling (see [Permissions](#permissions)). **Log** shows the agent's lines from `logread`.
 
-> **Agent 1.5.0.** Pairing, the full status and the permission switches in LuCI use agent commands that 1.5.0 does not have yet: `status --json`, `enroll --no-browser --json` and `ceiling show|set`. A later agent release adds them. Until then, LuCI shows basic status (version, paired, service running) and the log; pair over SSH with the command from the dashboard. The agent updates itself, so LuCI gains these features without reinstalling.
-
 ## Permissions
 
 The router's local ceiling, `/etc/letkite/ceiling.toml`, is the most AI assistants may ever do on this router, whatever your LetKite account allows: the dashboard can narrow it but never exceed it. Only root can change it. **Services → LetKite → Permissions** shows it.
