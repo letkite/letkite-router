@@ -7,6 +7,7 @@
 #   tests/openwrt/vm.sh start armv7                     # armsr-armv7 (UEFI)
 #   tests/openwrt/vm.sh ssh NAME [COMMAND...]           # root, no password
 #   tests/openwrt/vm.sh put NAME FILE PATH              # copy a file in (no scp there)
+#   tests/openwrt/vm.sh forward NAME PORT               # its port 80 on 127.0.0.1:PORT (background)
 #   tests/openwrt/vm.sh stop NAME
 #   tests/openwrt/vm.sh list
 #
@@ -136,6 +137,8 @@ case "${1:-}" in
   ssh) shift; name=${1:?name}; shift; ssh_to "$name" "$@" ;;
   put) shift; [[ $# -eq 3 ]] || die "put NAME FILE PATH"
        ssh_to "$1" "cat > '$3'" < "$2" ;;
+  forward) shift; [[ $# -eq 2 ]] || die "forward NAME PORT"
+       ssh_to "$1" -f -N -L "127.0.0.1:$2:127.0.0.1:80" ;;
   list)
     for d in "$vms"/*/; do
       [[ -d $d ]] || continue
@@ -143,5 +146,5 @@ case "${1:-}" in
       if running "$n"; then s="running, ssh 127.0.0.1:$(cat "$d/port")"; else s=stopped; fi
       echo "$n  $(cat "$d/version" 2>/dev/null)  $s"
     done ;;
-  *) sed -n '2,20p' "$0"; exit 2 ;;
+  *) sed -n '2,21p' "$0"; exit 2 ;;
 esac

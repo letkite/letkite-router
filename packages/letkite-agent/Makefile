@@ -58,8 +58,9 @@ if "$$agent" install; then
 	exit 0
 fi
 if [ ! -f /etc/letkite/agent.toml ]; then
-	echo "letkite-agent: not paired yet. Pair this router in LuCI (Services > LetKite)"
-	echo "or with 'letkite-agent enroll'; the service is installed once it is paired."
+	echo "letkite-agent: not paired yet. Pair this router in LuCI (Services > LetKite), or over"
+	echo "SSH with the command from https://dashboard.letkite.com (Add device > Router);"
+	echo "the service is installed once it is paired."
 	exit 0
 fi
 echo "letkite-agent: 'letkite-agent install' failed" >&2

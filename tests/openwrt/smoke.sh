@@ -169,18 +169,29 @@ on 'uclient-fetch -q -O /dev/null http://127.0.0.1/luci-static/resources/view/le
 on 'uclient-fetch -q -O /dev/null http://127.0.0.1/luci-static/resources/letkite/qrcode.js' \
   || die "uhttpd does not serve letkite/qrcode.js"
 on 'test -s /usr/lib/lua/luci/i18n/letkite.zh-cn.lmo' || die "no Chinese translation"
-sid=$(on 'ubus call session login "{\"username\":\"root\",\"password\":\"\"}"' | sed -n 's/.*"ubus_rpc_session": *"\([0-9a-f]*\)".*/\1/p')
-[[ -n $sid ]] || die "no LuCI session for root"
-on "uclient-fetch -q -O /tmp/page.html --header='Cookie: sysauth_http=$sid' http://127.0.0.1/cgi-bin/luci/admin/services/letkite/overview" \
-  || die "LuCI does not serve Services > LetKite"
-on 'grep -q "letkite/overview" /tmp/page.html' || die "the LuCI page does not load the view"
+# LuCI's own login, as a browser does it, from this machine through a
+# forwarded port: root has no password on a fresh image
+web=$(python3 -c 'import socket; s=socket.socket(); s.bind(("127.0.0.1", 0)); print(s.getsockname()[1])')
+"$vm" forward "$name" "$web"
+jar="$www/cookies"
+code=$(curl -s -o /dev/null -w '%{http_code}' -c "$jar" --data 'luci_username=root&luci_password=' \
+  "http://127.0.0.1:$web/cgi-bin/luci/")
+[[ $code == 302 || $code == 200 ]] || die "LuCI login answered $code"
+code=$(curl -s -o "$www/page.html" -w '%{http_code}' -b "$jar" "http://127.0.0.1:$web/cgi-bin/luci/admin/services/letkite/overview")
+[[ $code == 200 ]] || die "Services > LetKite answered $code"
+grep -q "letkite/overview" "$www/page.html" || die "the LuCI page does not load the LetKite view"
+sid=$(awk '$6 ~ /^sysauth/ { print $7 }' "$jar" | head -1)
+[[ -n $sid ]] || die "no LuCI session cookie"
 rpc() { # SESSION METHOD
-  on "uclient-fetch -q -O - --post-data='{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"call\",\"params\":[\"$1\",\"letkite\",\"$2\",{}]}' http://127.0.0.1/ubus"
+  curl -s --data "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"call\",\"params\":[\"$1\",\"letkite\",\"$2\",{}]}" \
+    "http://127.0.0.1:$web/ubus"
 }
 reply=$(rpc "$sid" status)
-grep -q "\"version\": *\"$AGENT_VERSION\"" <<<"$reply" || die "the admin's session cannot call letkite status: $reply"
+grep -q "\"version\": *\"$AGENT_VERSION\"" <<<"$reply" || die "the LuCI session cannot call letkite status: $reply"
 reply=$(rpc 00000000000000000000000000000000 status)
 grep -q '"error"' <<<"$reply" || die "an anonymous session called letkite status: $reply"
+reply=$(rpc 00000000000000000000000000000000 pause)
+grep -q '"error"' <<<"$reply" || die "an anonymous session called letkite pause: $reply"
 
 step "remove (not paired)"
 pkg_remove luci-app-letkite luci-i18n-letkite-zh-cn letkite-agent
