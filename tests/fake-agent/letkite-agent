@@ -10,8 +10,12 @@
 #   ceiling show --json | ceiling set SWITCH true|false
 #   install | uninstall | --version
 #
+# The JSON has the shapes of the agent's golden files (the contract the
+# agent's own tests hold it to); only the values differ.
+#
 # FAKE_ENROLL: "ok" (default), "error", or "wait" (stays at the code until
-# $FAKE_AGENT_STATE/approve exists). FAKE_FAIL: a command that fails.
+# $FAKE_AGENT_STATE/approve exists). FAKE_CEILING=invalid: a ceiling the
+# agent cannot read. FAKE_FAIL: a command that fails.
 set -u
 state="${FAKE_AGENT_STATE:?FAKE_AGENT_STATE is not set}"
 mkdir -p "$state"
@@ -19,6 +23,9 @@ mkdir -p "$state"
 
 fail() { echo "error: $*" >&2; exit 1; }
 [ "${FAKE_FAIL:-}" = "${1:-}" ] && fail "${1:-} failed (FAKE_FAIL)"
+
+# What `ceiling set` changes, in the order `ceiling show` prints them.
+SWITCHES="accelerate direct env handover mesh telemetry updates"
 
 flag() { [ -f "$state/$1" ] && echo true || echo false; }
 
@@ -28,8 +35,13 @@ status)
 	[ "${2:-}" = --json ] || fail "status: only --json here"
 	until=null
 	[ -f "$state/paused_until" ] && until=$(cat "$state/paused_until")
+	if [ -f "$state/enrolled" ]; then
+		node='"n_fake"' name='"fake-router"' gateway='"https://gateway.example"'
+	else
+		node=null name=null gateway=null
+	fi
 	cat <<-J
-		{"version":"9.9.9","instance":null,"enrolled":$(flag enrolled),"node_id":$( [ -f "$state/enrolled" ] && echo '"n_fake"' || echo null),"name":"fake-router","gateway_url":"https://gateway.example","connected":$(flag enrolled),"paused":$(flag paused),"paused_until":$until,"service_running":$(flag installed),"last_error":null}
+		{"version":"9.9.9","instance":null,"enrolled":$(flag enrolled),"node_id":$node,"name":$name,"gateway_url":$gateway,"connected":$(flag enrolled),"paused":$(flag paused),"paused_until":$until,"service_running":$(flag installed),"last_error":null}
 	J
 	;;
 enroll)
@@ -48,7 +60,7 @@ enroll)
 	echo '{"event":"code","user_code":"ABCD-EFGH","verification_uri":"https://id.example/activate","verification_uri_complete":"https://id.example/activate?code=ABCD-EFGH","expires_in":600}'
 	case "${FAKE_ENROLL:-ok}" in
 		error)
-			echo '{"event":"error","code":"expired","message":"the code expired"}'
+			echo '{"event":"error","code":"expired","message":"the code expired before anyone approved it"}'
 			exit 1 ;;
 		wait)
 			while [ ! -f "$state/approve" ]; do sleep 1; done ;;
@@ -66,18 +78,28 @@ ceiling)
 	case "${2:-}" in
 		show)
 			[ "${3:-}" = --json ] || fail "ceiling show: --json expected"
-			printf '{"path":"/etc/letkite/ceiling.toml"'
-			for s in exec files shell terminal mesh env; do
-				v=true; [ -f "$state/ceiling.$s" ] && v=$(cat "$state/ceiling.$s")
-				printf ',"%s":%s' "$s" "$v"
+			if [ "${FAKE_CEILING:-}" = invalid ]; then
+				# shellcheck disable=SC2016 # the backquotes are the agent's own
+				echo '{"path":"/etc/letkite/ceiling.toml","valid":false,"error":"missing field `direct`","switches":null,"settings":null}'
+				exit 0
+			fi
+			printf '{"path":"/etc/letkite/ceiling.toml","valid":true,"error":null,"switches":{'
+			sep=""
+			for s in $SWITCHES; do
+				v=true; [ "$s" = handover ] && v=false
+				[ -f "$state/ceiling.$s" ] && v=$(cat "$state/ceiling.$s")
+				printf '%s"%s":%s' "$sep" "$s" "$v"
+				sep=,
 			done
-			printf ',"tunnel_targets":["192.168.1.0/24"]}\n'
+			printf '},"settings":{"shell":"full","files":["*"],"deny":[],"gui":"off","gui_apps":[],"tunnel_targets":["192.168.1.0/24"],"keep_awake":"off","local_control":"admins","exit_node":false}}\n'
 			;;
 		set)
 			[ $# -eq 4 ] || fail "ceiling set SWITCH true|false"
+			case " $SWITCHES " in *" $3 "*) ;; *) fail "/etc/letkite/ceiling.toml: $3 is not a switch; not changed" ;; esac
 			case "$4" in true | false) ;; *) fail "not true or false: $4" ;; esac
+			[ "${FAKE_CEILING:-}" = invalid ] && fail "/etc/letkite/ceiling.toml: missing field \`direct\`; not changed"
 			echo "$4" > "$state/ceiling.$3"
-			echo "$3 = $4"
+			echo "$3 = $4 in /etc/letkite/ceiling.toml. Restart the service to apply it: sudo systemctl restart letkite-agent (OpenWrt: /etc/init.d/letkite-agent restart)"
 			;;
 		*) fail "ceiling: show or set" ;;
 	esac

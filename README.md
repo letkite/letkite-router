@@ -87,9 +87,50 @@ To pair the router as part of the install, use the command shown in the [dashboa
 2. LuCI shows a code, a link and a QR code. Open the link (or scan the code with your phone), sign in to LetKite, and approve the code.
 3. Once you approve it, the router appears in your dashboard and the agent's service starts.
 
-**Pause** disconnects the agent for 30 minutes, an hour, a day, a custom time, or until you resume it. **Permissions** shows the router's local ceiling: the most an AI assistant may ever do on this router, whatever the account allows. Turning on commands, shells, terminals or file access asks for confirmation first. **Log** shows the agent's lines from `logread`.
+**Pause** disconnects the agent for 30 minutes, an hour, a day, a custom time, or until you resume it. **Permissions** shows the router's local ceiling (see [Permissions](#permissions)). **Log** shows the agent's lines from `logread`.
 
 > **Agent 1.5.0.** Pairing, the full status and the permission switches in LuCI use agent commands that 1.5.0 does not have yet: `status --json`, `enroll --no-browser --json` and `ceiling show|set`. A later agent release adds them. Until then, LuCI shows basic status (version, paired, service running) and the log; pair over SSH with the command from the dashboard. The agent updates itself, so LuCI gains these features without reinstalling.
+
+## Permissions
+
+The router's local ceiling, `/etc/letkite/ceiling.toml`, is the most AI assistants may ever do on this router, whatever your LetKite account allows: the dashboard can narrow it but never exceed it. Only root can change it. **Services → LetKite → Permissions** shows it.
+
+**Switches.** Seven of its keys are true or false, and LuCI turns them on and off:
+
+| Switch | On means |
+|---|---|
+| `handover` | someone at the device may hand it over to AI assistants and leave (meant for desktops) |
+| `direct` | direct peer-to-peer transfers with the account's other devices |
+| `updates` | the agent installs newer releases signed by LetKite |
+| `env` | the environment variables set in the dashboard are written on the router, for the commands run there |
+| `accelerate` | traffic to LetKite's own servers goes through its access points |
+| `telemetry` | the agent sends its crash reports (version, system, where it failed; never commands, paths or output) |
+| `mesh` | the router joins the account's mesh network, so its other devices can reach it as the account's rules allow |
+
+Turning on `handover`, `direct`, `env` or `mesh` asks for confirmation first, because each widens what AI assistants on the account can do or reach on this router. The other three are about how the agent itself runs.
+
+LuCI saves a switch with `letkite-agent ceiling set <switch> <true|false>`, which changes only that line of the file. The agent reads its ceiling only when it starts, so LuCI then restarts it (`/etc/init.d/letkite-agent restart`); the router is offline for LetKite for a few seconds.
+
+**Other limits.** The rest of the ceiling is not true or false, so LuCI shows it read-only:
+
+| Key | What |
+|---|---|
+| `shell` | `off` or `full`: whether AI assistants may run commands, shell sessions and terminals here. (`sandboxed` needs Landlock, which OpenWrt's kernel does not have.) |
+| `files` | the most of the file system they may be granted; `[]` is nothing, `["*"]` no limit |
+| `deny` | paths always hidden |
+| `gui`, `gui_apps` | screen access; `off` and `[]` on a router |
+| `tunnel_targets` | where tunnels may connect, such as `"192.168.1.0/24"` or `"192.168.1.10:80"` |
+| `keep_awake`, `local_control` | power, and who at the device may pause the connection |
+
+To change them, edit the file over SSH, check it, and restart the agent:
+
+```sh
+vi /etc/letkite/ceiling.toml
+letkite-agent ceiling --path /etc/letkite/ceiling.toml   # prints what the agent reads, or the error
+/etc/init.d/letkite-agent restart
+```
+
+Every key must be present and unknown keys are refused. The agent does not start with a ceiling it cannot read; LuCI then shows why.
 
 ## Uninstall
 

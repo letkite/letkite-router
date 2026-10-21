@@ -87,9 +87,50 @@ wget -qO- https://get.letkite.com/install.sh | sh
 2. LuCI 显示一个配对码、一个链接和一个二维码。打开链接（或用手机扫码），登录 LetKite，批准这个配对码。
 3. 批准以后，路由器出现在你的控制台里，agent 的服务随之启动。
 
-**暂停**会断开 agent：30 分钟、1 小时、1 天、自定时长，或者直到手动恢复。**权限**页显示路由器本地的上限：无论账户允许什么，AI 助手在这台路由器上最多只能做这些。打开执行命令、shell、终端或文件访问时，会先请你确认。**日志**页显示 `logread` 里 agent 的日志。
+**暂停**会断开 agent：30 分钟、1 小时、1 天、自定时长，或者直到手动恢复。**权限**页显示路由器本地的上限（见[权限](#权限)）。**日志**页显示 `logread` 里 agent 的日志。
 
 > **agent 1.5.0。** LuCI 里的配对、完整状态和权限开关要用到 1.5.0 还没有的 agent 命令：`status --json`、`enroll --no-browser --json` 和 `ceiling show|set`。之后的 agent 版本会加上。在那之前，LuCI 显示基本状态（版本、是否已配对、服务是否在运行）和日志；配对请通过 SSH 运行控制台给出的命令。agent 会自动升级，升级后 LuCI 就有这些功能，不用重新安装。
+
+## 权限
+
+路由器本地的上限 `/etc/letkite/ceiling.toml`：无论你的 LetKite 账户允许什么，AI 助手在这台路由器上最多只能做这些。控制台只能在它以内收紧，不能超出。只有 root 能改。**服务 → LetKite → 权限**页显示它。
+
+**开关。** 其中七项是 true 或 false，可以在 LuCI 里打开和关闭：
+
+| 开关 | 打开表示 |
+|---|---|
+| `handover` | 设备前的人可以把它交接给 AI 助手后离开（给桌面电脑用） |
+| `direct` | 和账户里的其他设备点对点直接传输 |
+| `updates` | agent 安装 LetKite 签名的新版本 |
+| `env` | 控制台里设置的环境变量写到路由器上，用于在这里运行的命令 |
+| `accelerate` | 到 LetKite 自己服务器的流量走它的接入点 |
+| `telemetry` | agent 发送崩溃报告（版本、系统、出错位置；绝不含命令、路径或输出） |
+| `mesh` | 路由器加入账户的组网，账户里的其他设备可以按账户的规则访问它 |
+
+打开 `handover`、`direct`、`env` 或 `mesh` 时会先请你确认，因为它们都会扩大账户里的 AI 助手在这台路由器上能做或能到达的范围。另外三项只关系到 agent 自身怎么运行。
+
+LuCI 用 `letkite-agent ceiling set <开关> <true|false>` 保存开关，只改文件里那一行。agent 只在启动时读上限，所以 LuCI 接着重启它（`/etc/init.d/letkite-agent restart`），路由器会和 LetKite 断开几秒钟。
+
+**其他限制。** 上限的其余部分不是 true 或 false，LuCI 只显示、不修改：
+
+| 键 | 含义 |
+|---|---|
+| `shell` | `off` 或 `full`：AI 助手能否在这里运行命令、shell 会话和终端。（`sandboxed` 要用 Landlock，OpenWrt 的内核没有。） |
+| `files` | 最多能授予的文件范围；`[]` 是什么都不允许，`["*"]` 是不限 |
+| `deny` | 始终隐藏的路径 |
+| `gui`、`gui_apps` | 屏幕访问；路由器上是 `off` 和 `[]` |
+| `tunnel_targets` | 隧道可以连接的地址，例如 `"192.168.1.0/24"` 或 `"192.168.1.10:80"` |
+| `keep_awake`、`local_control` | 电源，以及设备前谁可以暂停连接 |
+
+要修改它们，请通过 SSH 编辑文件、检查，然后重启 agent：
+
+```sh
+vi /etc/letkite/ceiling.toml
+letkite-agent ceiling --path /etc/letkite/ceiling.toml   # 打印 agent 读到的内容，或者错误
+/etc/init.d/letkite-agent restart
+```
+
+每一项都要写，未知的键会被拒绝。上限文件读不了时 agent 不会启动，LuCI 会显示原因。
 
 ## 卸载
 
