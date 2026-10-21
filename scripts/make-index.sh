@@ -12,8 +12,8 @@ set -euo pipefail
 sdk=${1:?usage: make-index.sh SDK DIR}
 dir=${2:?usage: make-index.sh SDK DIR}
 host="$sdk/staging_dir/host/bin"
-# the SDK's scripts call its host tools (mkhash) by name
-export PATH="$host:$PATH"
+# the SDK's scripts call its host tools by name or through $MKHASH
+export PATH="$host:$PATH" MKHASH="$host/mkhash"
 cd "$dir"
 
 die() { echo "make-index.sh: $*" >&2; exit 1; }

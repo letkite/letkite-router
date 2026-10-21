@@ -111,11 +111,11 @@ cat > .config <<CFG
 # CONFIG_SIGNED_PACKAGES is not set
 CONFIG_PACKAGE_letkite-agent=m
 CONFIG_PACKAGE_luci-app-letkite=m
-CONFIG_LUCI_LANG_zh_Hans=m
-CONFIG_LUCI_LANG_ja=m
-CONFIG_LUCI_LANG_ko=m
-CONFIG_LUCI_LANG_fr=m
-CONFIG_LUCI_LANG_de=m
+CONFIG_LUCI_LANG_zh_Hans=y
+CONFIG_LUCI_LANG_ja=y
+CONFIG_LUCI_LANG_ko=y
+CONFIG_LUCI_LANG_fr=y
+CONFIG_LUCI_LANG_de=y
 CFG
 make defconfig > /dev/null
 

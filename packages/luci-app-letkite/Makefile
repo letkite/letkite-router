@@ -34,8 +34,10 @@ define Package/luci-app-letkite/prerm
 #!/bin/sh
 [ -n "$${IPKG_INSTROOT}" ] && exit 0
 # a pairing still waiting for its code to be approved
-pid=$$(cat /var/run/letkite/enroll.pid 2>/dev/null)
-[ -n "$$pid" ] && kill "$$pid" 2>/dev/null
+for f in enroll.pid enroll.agent.pid; do
+	pid=$$(cat "/var/run/letkite/$$f" 2>/dev/null)
+	[ -n "$$pid" ] && kill "$$pid" 2>/dev/null
+done
 rm -rf /var/run/letkite
 exit 0
 endef
