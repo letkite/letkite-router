@@ -75,22 +75,34 @@ url="http://192.168.1.2:$port"
 step "start OpenWrt $version"
 "$vm" start x86_64 "$version" "$name"
 
-# use_feed DIR: the package manager reads our feed DIR (and OpenWrt's own)
+# use_feed DIR: the package manager reads our feed DIR (and OpenWrt's own,
+# which the network may drop now and then: three tries)
 use_feed() {
+  local update
   if [[ $pm == opkg ]]; then
-    on "sed -i '/letkite/d' /etc/opkg/customfeeds.conf \
-      && echo 'src/gz letkite $url/$1' >> /etc/opkg/customfeeds.conf && opkg update > /tmp/update.log 2>&1" \
-      || { on 'tail -n 20 /tmp/update.log'; die "opkg update"; }
+    on "sed -i '/letkite/d' /etc/opkg/customfeeds.conf && echo 'src/gz letkite $url/$1' >> /etc/opkg/customfeeds.conf"
+    update='opkg update > /tmp/update.log 2>&1'
   else
-    on "echo '$url/$1/packages.adb' > /etc/apk/repositories.d/letkite.list && apk update > /tmp/update.log 2>&1" \
-      || { on 'tail -n 20 /tmp/update.log'; die "apk update"; }
+    on "echo '$url/$1/packages.adb' > /etc/apk/repositories.d/letkite.list"
+    update='apk update > /tmp/update.log 2>&1'
   fi
+  for try in 1 2 3; do
+    on "$update" && return
+    on 'tail -n 20 /tmp/update.log'
+    ((try < 3)) && sleep 10
+  done
+  die "$pm update failed three times"
 }
 pkg_install() {
   if [[ $pm == opkg ]]; then on "opkg install $*"; else on "apk add $*"; fi
 }
-pkg_remove() {
-  if [[ $pm == opkg ]]; then on "opkg remove $*"; else on "apk del $*"; fi
+# uninstall, as the README says: the agent and what depends on it
+uninstall_all() {
+  if [[ $pm == opkg ]]; then
+    on 'opkg remove --force-removal-of-dependent-packages letkite-agent'
+  else
+    on 'apk del -r letkite-agent'
+  fi
 }
 installed() {
   if [[ $pm == opkg ]]; then on "opkg list-installed | grep -q '^$1 '"; else on "apk info -e $1 > /dev/null"; fi
@@ -118,6 +130,15 @@ if [[ -n $tampered ]]; then
   fi
   echo "$out" | tail -n 5
   grep -q "does not match the SHA-256 pinned" <<<"$out" || die "no word of the mismatch"
+  on 'test ! -e /opt/letkite-agent && test ! -e /etc/init.d/letkite-agent && test ! -e /usr/bin/letkite-agent' \
+    || die "the failed install left the program or a service behind"
+  if [[ $pm == apk ]]; then
+    # apk-tools goes on after a failed pre-install script and records the
+    # package (with a script error); it holds nothing but its table, and
+    # removing it leaves nothing
+    grep -q "pre-install: exited with error" <<<"$out" || die "apk did not report the failed pre-install"
+    uninstall_all
+  fi
   nothing_installed || die "the failed install left something behind"
 fi
 
@@ -130,7 +151,7 @@ grep -q "SHA-256 verified" <<<"$out" || die "the package did not say it verified
 step "the program is the pinned release"
 got=$(on 'sha256sum /opt/letkite-agent/letkite-agent' | awk '{ print $1 }')
 [[ $got == "$AGENT_SHA256_x86_64" ]] || die "/opt/letkite-agent/letkite-agent is $got, not the pinned $AGENT_SHA256_x86_64"
-on 'test "$(stat -c %a /opt/letkite-agent/letkite-agent)" = 755' || die "not mode 0755"
+on 'ls -l /opt/letkite-agent/letkite-agent' | grep -q '^-rwxr-xr-x ' || die "not mode 0755"
 on '/opt/letkite-agent/letkite-agent --version' | grep -qx "letkite-agent $AGENT_VERSION" || die "not version $AGENT_VERSION"
 on 'test "$(readlink /usr/bin/letkite-agent)" = /opt/letkite-agent/letkite-agent' || die "no /usr/bin/letkite-agent"
 
@@ -194,7 +215,8 @@ reply=$(rpc 00000000000000000000000000000000 pause)
 grep -q '"error"' <<<"$reply" || die "an anonymous session called letkite pause: $reply"
 
 step "remove (not paired)"
-pkg_remove luci-app-letkite luci-i18n-letkite-zh-cn letkite-agent
+uninstall_all
+on 'test ! -e /usr/lib/lua/luci/i18n/letkite.zh-cn.lmo' || die "the translation is still there"
 nothing_installed || die "removing left something behind"
 on 'ubus list letkite' > /dev/null 2>&1 && die "the rpcd object letkite is still there"
 
@@ -230,7 +252,7 @@ on "jsonfilter -s '$st' -e @.agent.service_running" | grep -qx true || die "stat
 on 'ubus call letkite log "{\"lines\":5}"' | grep -q letkite || die "letkite log shows nothing"
 
 step "uninstall"
-pkg_remove luci-app-letkite letkite-agent
+uninstall_all
 nothing_installed || die "uninstall left the program or the service behind"
 on 'test ! -e /etc/rc.d/S99letkite-agent && test ! -e /lib/upgrade/keep.d/letkite-agent' \
   || die "uninstall left the service's links or keep list"

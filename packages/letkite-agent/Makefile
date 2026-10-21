@@ -51,7 +51,12 @@ define Package/letkite-agent/postinst
 #!/bin/sh
 [ -n "$${IPKG_INSTROOT}" ] && exit 0
 agent=/opt/letkite-agent/letkite-agent
-[ -x "$$agent" ] || { echo "letkite-agent: $$agent is missing; reinstall this package" >&2; exit 1; }
+# apk goes on after a failed pre-install script; opkg stops there
+if [ ! -x "$$agent" ]; then
+	echo "letkite-agent: $$agent is missing: downloading or checking it failed (see above)." >&2
+	echo "Remove this package (apk del letkite-agent, or opkg remove letkite-agent) and try again." >&2
+	exit 1
+fi
 [ -e /usr/bin/letkite-agent ] || ln -s "$$agent" /usr/bin/letkite-agent
 # the service is the agent's own (init script, sysupgrade keep list)
 if "$$agent" install; then

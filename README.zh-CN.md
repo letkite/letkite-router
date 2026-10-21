@@ -94,9 +94,11 @@ wget -qO- https://get.letkite.com/install.sh | sh
 ## 卸载
 
 ```sh
-apk del luci-app-letkite letkite-agent              # 25.12
-opkg remove luci-app-letkite letkite-agent          # 24.10
+apk del -r letkite-agent                                          # 25.12
+opkg remove --force-removal-of-dependent-packages letkite-agent   # 24.10
 ```
+
+这会把 `letkite-agent` 和依赖它的软件包（`luci-app-letkite` 及其翻译包）一起卸载。
 
 卸载 `letkite-agent` 时，先运行 agent 自己的 `letkite-agent uninstall`，停止并删除它的 procd 服务和 sysupgrade 保留清单，然后删除 `/opt/letkite-agent`。**`/etc/letkite` 会保留。** 那里有节点密钥、注册信息和上限，所以重新安装后还是同一个节点。要彻底忘掉这个节点，再删除这个目录，并在控制台里移除这台路由器：
 
@@ -110,7 +112,7 @@ rm -rf /etc/letkite
 
 1. 包管理器只从带 LetKite 软件源签名的索引安装 `letkite-agent`：24.10 用 usign，25.12 用 apk v3 密钥。索引里列着每个软件包的哈希。
 2. 软件包的安装前脚本带着一张从 agent 发布生成的表：版本号，以及每种架构程序的 SHA-256（[`packages/letkite-agent/files/release`](packages/letkite-agent/files/release)）。
-3. 脚本下载 `https://get.letkite.com/agent/v<版本>/letkite-agent-linux-<架构>`，用 `sha256sum` 核对，完全一致才安装。哈希不符、CPU 不支持、闪存不够或者下载失败时，脚本在软件包装上之前就失败，路由器上什么都不会留下。
+3. 脚本下载 `https://get.letkite.com/agent/v<版本>/letkite-agent-linux-<架构>`，用 `sha256sum` 核对，完全一致才安装。哈希不符、CPU 不支持、闪存不够或者下载失败时，脚本失败，安装命令也失败，路由器上不会留下程序或服务。opkg（24.10）会就此停下，软件包根本不会装上。apk-tools（25.12）在安装前脚本失败后会继续：它保留这个软件包的记录，记录里只有发布表，并标着脚本出错。用 `apk del -r letkite-agent` 删除它。
 
 这张表只会从这样的发布重新生成：它的 `release.json` 带有 LetKite agent 发布密钥之一的有效 Ed25519 签名（[`keys/agent-release-keys.txt`](keys/agent-release-keys.txt)，和 agent 自己信任的是同一组密钥），而且 `SHA256SUMS` 和 `release.json` 一致。[`scripts/release-table.py`](scripts/release-table.py) 负责这些检查；定时的 `bump` 工作流运行它并开 pull request，每次改动时 CI 也会拿固定的表去核对签名过的发布。
 

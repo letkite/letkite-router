@@ -8,7 +8,9 @@
 # `install` sets up its procd service (post-install). The package does not
 # own that file: the agent replaces it when it updates itself.
 #
-# If this fails, the package is not installed, and nothing is left behind.
+# If this fails, nothing is left behind and the install fails: opkg stops
+# there; apk-tools records the package with a script error (post-install
+# then says to remove it).
 # Only POSIX sh and what BusyBox has.
 
 # building a firmware image (Image Builder, IPKG_INSTROOT set): there is no
