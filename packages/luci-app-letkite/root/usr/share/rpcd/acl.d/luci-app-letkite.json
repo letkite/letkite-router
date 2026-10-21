@@ -1,0 +1,15 @@
+{
+	"luci-app-letkite": {
+		"description": "Grant access to the LetKite agent (status, pairing, pause, permissions, log)",
+		"read": {
+			"ubus": {
+				"letkite": [ "status", "enroll_poll", "ceiling_get", "log" ]
+			}
+		},
+		"write": {
+			"ubus": {
+				"letkite": [ "enroll_start", "pause", "resume", "ceiling_set" ]
+			}
+		}
+	}
+}

@@ -1,0 +1,363 @@
+msgid ""
+msgstr ""
+"Language: zh_Hans\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:260
+msgid "1 day"
+msgstr "1 天"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:259
+msgid "1 hour"
+msgstr "1 小时"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:258
+msgid "30 minutes"
+msgstr "30 分钟"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:270
+msgid "A duration is a number and m, h or d, e.g. 30m, 1h, 1d."
+msgstr "时长写成数字加 m、h 或 d，例如 30m、1h、1d。"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:131
+msgid "A name is 1 to 63 letters, digits, dots, dashes and underscores."
+msgstr "名称由 1 到 63 个字母、数字、点、连字符和下划线组成。"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:231
+msgid "AI assistants cannot reach this router until it is resumed."
+msgstr "恢复之前，AI 助手无法访问这台路由器。"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:30
+msgid "Access points"
+msgstr "接入点"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:72
+msgid "Agent version"
+msgstr "Agent 版本"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:51
+msgid "Allow"
+msgstr "允许"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:40
+msgid "Allow %s?"
+msgstr "允许“%s”？"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:28
+msgid "Allow direct peer-to-peer transfers."
+msgstr "允许点对点直接传输。"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:171
+msgid "Approve this router"
+msgstr "批准这台路由器"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:187
+msgid "Approved; starting the service…"
+msgstr "已批准，正在启动服务…"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:46
+msgid "Cancel"
+msgstr "取消"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:65
+msgid "Connected"
+msgstr "已连接"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:76
+msgid "Connection"
+msgstr "连接"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:27
+msgid "Diagnostics"
+msgstr "诊断信息"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:28
+msgid "Direct transfers"
+msgstr "直接传输"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:288
+msgid "Documentation"
+msgstr "文档"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:26
+msgid "Environment variables"
+msgstr "环境变量"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:21
+msgid "Files"
+msgstr "文件"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:29
+msgid "Install newer agent releases signed by LetKite."
+msgstr "安装 LetKite 签名的新版 agent。"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:24
+msgid "Join the account's mesh network, so that its other devices can reach this one as its rules allow."
+msgstr "加入账户的组网，账户里的其他设备可以按规则访问这台设备。"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:22
+msgid "Keep shell sessions open on this router."
+msgstr "在这台路由器上保持 shell 会话。"
+
+#: htdocs/luci-static/resources/view/letkite/log.js:33
+msgid "Last %d lines"
+msgstr "最后 %d 行"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:82
+msgid "Last error"
+msgstr "最近的错误"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:25
+msgid "Let other devices of the account send their traffic out through this router."
+msgstr "让账户里的其他设备经这台路由器出网。"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:282 root/usr/share/luci/menu.d/luci-app-letkite.json
+msgid "LetKite"
+msgstr "LetKite"
+
+#: htdocs/luci-static/resources/view/letkite/log.js:41 root/usr/share/luci/menu.d/luci-app-letkite.json
+msgid "Log"
+msgstr "日志"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:24
+msgid "Mesh network"
+msgstr "组网"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:123
+msgid "Name"
+msgstr "名称"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:25
+msgid "Network exit"
+msgstr "网络出口"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:75
+msgid "No"
+msgstr "否"
+
+#: htdocs/luci-static/resources/view/letkite/log.js:22
+msgid "No log lines from the agent."
+msgstr "agent 还没有日志。"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:80
+msgid "Node"
+msgstr "节点"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:67
+msgid "Not connected"
+msgstr "未连接"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:77
+msgid "Not running"
+msgstr "未运行"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:23
+msgid "Open interactive terminals on this router."
+msgstr "在这台路由器上打开交互式终端。"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:286
+msgid "Open the dashboard"
+msgstr "打开控制台"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:172
+msgid "Open the link, sign in to LetKite and approve the code. You can scan the QR code with your phone."
+msgstr "打开链接，登录 LetKite 并批准这个代码。也可以用手机扫描二维码。"
+
+#: root/usr/share/luci/menu.d/luci-app-letkite.json
+msgid "Overview"
+msgstr "概览"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:143
+msgid "Pair"
+msgstr "配对"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:120
+msgid "Pair this router"
+msgstr "配对这台路由器"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:73
+msgid "Paired"
+msgstr "已配对"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:189
+msgid "Paired as %s."
+msgstr "已配对，名称为 %s。"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:189
+msgid "Paired."
+msgstr "已配对。"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:121
+msgid "Pairing connects this router to your LetKite account. You will get a code to approve after signing in."
+msgstr "配对会把这台路由器连到你的 LetKite 账户。你会拿到一个代码，登录后批准即可。"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:136
+msgid "Pairing could not start."
+msgstr "无法开始配对。"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:199
+msgid "Pairing failed: %s"
+msgstr "配对失败：%s"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:255
+msgid "Pause"
+msgstr "暂停"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:275
+msgid "Pause for"
+msgstr "暂停时长"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:230
+msgid "Paused"
+msgstr "已暂停"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:62
+msgid "Paused until %s"
+msgstr "暂停到 %s"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:63
+msgid "Paused until resumed"
+msgstr "已暂停，直到手动恢复"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:256
+msgid "Pausing disconnects the agent: AI assistants cannot reach this router or its network until the time is up or it is resumed."
+msgstr "暂停会断开 agent：到时间或手动恢复之前，AI 助手无法访问这台路由器和它的网络。"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:115 root/usr/share/luci/menu.d/luci-app-letkite.json
+msgid "Permissions"
+msgstr "权限"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:30
+msgid "Reach LetKite's servers through its access points."
+msgstr "经 LetKite 的接入点访问 LetKite 的服务器。"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:21
+msgid "Read and write files on this router."
+msgstr "读写这台路由器上的文件。"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:235
+msgid "Resume"
+msgstr "恢复"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:20
+msgid "Run commands"
+msgstr "执行命令"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:20
+msgid "Run commands on this router."
+msgstr "在这台路由器上执行命令。"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:77
+msgid "Running"
+msgstr "运行中"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:74
+msgid "Saved."
+msgstr "已保存。"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:27
+msgid "Send diagnostics that help LetKite fix problems."
+msgstr "发送帮助 LetKite 排查问题的诊断信息。"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:77
+msgid "Service"
+msgstr "服务"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:22
+msgid "Shell"
+msgstr "Shell"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:109
+msgid "Starting…"
+msgstr "正在启动…"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:291
+msgid "Status"
+msgstr "状态"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:26
+msgid "Take the environment variables set in the dashboard."
+msgstr "使用控制台里设置的环境变量。"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:23
+msgid "Terminal"
+msgstr "终端"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:57
+msgid "The LetKite agent is not installed. Reinstall the letkite-agent package."
+msgstr "没有安装 LetKite agent。请重新安装 letkite-agent 软件包。"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:284
+msgid "The LetKite agent lets AI assistants on your LetKite account reach this router and the devices behind it, within the permissions you set here."
+msgstr "LetKite agent 让你 LetKite 账户里的 AI 助手在你在这里设定的权限内，访问这台路由器和它后面的设备。"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:223 htdocs/luci-static/resources/view/letkite/permissions.js:71 htdocs/luci-static/resources/view/letkite/permissions.js:84
+msgid "The agent did not answer."
+msgstr "agent 没有响应。"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:111
+msgid "The agent reported no switches."
+msgstr "agent 没有报告任何开关。"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:181
+msgid "The code is valid for %d minutes."
+msgstr "代码 %d 分钟内有效。"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:117
+msgid "The most AI assistants may ever do on this router, whatever your LetKite account allows. Changes are written to /etc/letkite/ceiling.toml."
+msgstr "无论 LetKite 账户允许什么，AI 助手在这台路由器上最多只能做这些。修改会写入 /etc/letkite/ceiling.toml。"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:88
+msgid "This agent version cannot change its permissions from LuCI yet; it will once it updates itself. Until then, edit /etc/letkite/ceiling.toml over SSH."
+msgstr "这个版本的 agent 还不能在 LuCI 里修改权限，它自动升级后就可以。在那之前，请通过 SSH 编辑 /etc/letkite/ceiling.toml。"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:87
+msgid "This agent version does not report its full status to LuCI yet; it will once it updates itself."
+msgstr "这个版本的 agent 还不能向 LuCI 报告完整状态，它自动升级后就可以。"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:41
+msgid "This lets AI assistants on your LetKite account act on this router directly, as root, within the rules set in the dashboard. Only allow it if you trust the people and assistants on that account."
+msgstr "这会让你 LetKite 账户里的 AI 助手在控制台设定的规则内，以 root 身份直接操作这台路由器。只有信任这个账户里的人和助手时才允许。"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:203
+msgid "Try again"
+msgstr "重试"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:261
+msgid "Until resumed"
+msgstr "直到手动恢复"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:29
+msgid "Updates"
+msgstr "更新"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:182
+msgid "Waiting for approval…"
+msgstr "等待批准…"
+
+#: htdocs/luci-static/resources/view/letkite/log.js:42
+msgid "What the agent wrote to the system log (logread -e letkite)."
+msgstr "agent 写入系统日志的内容（logread -e letkite）。"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:74
+msgid "Yes"
+msgstr "是"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:74
+msgid "Yes, as %s"
+msgstr "是，名称为 %s"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:241
+msgid "e.g. 45m, 2h, 3d"
+msgstr "例如 45m、2h、3d"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:115
+msgid "optional; the host name by default"
+msgstr "可选，默认用主机名"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:199
+msgid "unknown error"
+msgstr "未知错误"

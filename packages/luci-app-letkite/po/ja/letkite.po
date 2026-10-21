@@ -1,0 +1,363 @@
+msgid ""
+msgstr ""
+"Language: ja\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:260
+msgid "1 day"
+msgstr "1 日"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:259
+msgid "1 hour"
+msgstr "1 時間"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:258
+msgid "30 minutes"
+msgstr "30 分"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:270
+msgid "A duration is a number and m, h or d, e.g. 30m, 1h, 1d."
+msgstr "期間は数字と m、h、d のいずれかで指定します（例: 30m、1h、1d）。"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:131
+msgid "A name is 1 to 63 letters, digits, dots, dashes and underscores."
+msgstr "名前は英字、数字、ドット、ハイフン、アンダースコアで 1～63 文字です。"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:231
+msgid "AI assistants cannot reach this router until it is resumed."
+msgstr "再開するまで、AI アシスタントはこのルーターにアクセスできません。"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:30
+msgid "Access points"
+msgstr "アクセスポイント"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:72
+msgid "Agent version"
+msgstr "エージェントのバージョン"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:51
+msgid "Allow"
+msgstr "許可"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:40
+msgid "Allow %s?"
+msgstr "「%s」を許可しますか？"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:28
+msgid "Allow direct peer-to-peer transfers."
+msgstr "ピアツーピアの直接転送を許可します。"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:171
+msgid "Approve this router"
+msgstr "このルーターを承認"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:187
+msgid "Approved; starting the service…"
+msgstr "承認されました。サービスを起動しています…"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:46
+msgid "Cancel"
+msgstr "キャンセル"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:65
+msgid "Connected"
+msgstr "接続済み"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:76
+msgid "Connection"
+msgstr "接続"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:27
+msgid "Diagnostics"
+msgstr "診断情報"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:28
+msgid "Direct transfers"
+msgstr "直接転送"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:288
+msgid "Documentation"
+msgstr "ドキュメント"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:26
+msgid "Environment variables"
+msgstr "環境変数"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:21
+msgid "Files"
+msgstr "ファイル"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:29
+msgid "Install newer agent releases signed by LetKite."
+msgstr "LetKite が署名した新しいエージェントをインストールします。"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:24
+msgid "Join the account's mesh network, so that its other devices can reach this one as its rules allow."
+msgstr "アカウントのメッシュネットワークに参加し、ルールの範囲でほかのデバイスからアクセスできるようにします。"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:22
+msgid "Keep shell sessions open on this router."
+msgstr "このルーターでシェルセッションを開いたままにします。"
+
+#: htdocs/luci-static/resources/view/letkite/log.js:33
+msgid "Last %d lines"
+msgstr "最新 %d 行"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:82
+msgid "Last error"
+msgstr "直近のエラー"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:25
+msgid "Let other devices of the account send their traffic out through this router."
+msgstr "アカウントのほかのデバイスがこのルーター経由で通信できるようにします。"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:282 root/usr/share/luci/menu.d/luci-app-letkite.json
+msgid "LetKite"
+msgstr "LetKite"
+
+#: htdocs/luci-static/resources/view/letkite/log.js:41 root/usr/share/luci/menu.d/luci-app-letkite.json
+msgid "Log"
+msgstr "ログ"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:24
+msgid "Mesh network"
+msgstr "メッシュネットワーク"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:123
+msgid "Name"
+msgstr "名前"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:25
+msgid "Network exit"
+msgstr "ネットワーク出口"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:75
+msgid "No"
+msgstr "いいえ"
+
+#: htdocs/luci-static/resources/view/letkite/log.js:22
+msgid "No log lines from the agent."
+msgstr "エージェントのログはまだありません。"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:80
+msgid "Node"
+msgstr "ノード"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:67
+msgid "Not connected"
+msgstr "未接続"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:77
+msgid "Not running"
+msgstr "停止中"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:23
+msgid "Open interactive terminals on this router."
+msgstr "このルーターで対話型ターミナルを開きます。"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:286
+msgid "Open the dashboard"
+msgstr "ダッシュボードを開く"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:172
+msgid "Open the link, sign in to LetKite and approve the code. You can scan the QR code with your phone."
+msgstr "リンクを開いて LetKite にサインインし、コードを承認してください。スマートフォンで QR コードを読み取ることもできます。"
+
+#: root/usr/share/luci/menu.d/luci-app-letkite.json
+msgid "Overview"
+msgstr "概要"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:143
+msgid "Pair"
+msgstr "ペアリング"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:120
+msgid "Pair this router"
+msgstr "このルーターをペアリング"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:73
+msgid "Paired"
+msgstr "ペアリング"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:189
+msgid "Paired as %s."
+msgstr "%s としてペアリングしました。"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:189
+msgid "Paired."
+msgstr "ペアリングしました。"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:121
+msgid "Pairing connects this router to your LetKite account. You will get a code to approve after signing in."
+msgstr "ペアリングすると、このルーターが LetKite アカウントにつながります。表示されるコードをサインイン後に承認してください。"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:136
+msgid "Pairing could not start."
+msgstr "ペアリングを開始できませんでした。"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:199
+msgid "Pairing failed: %s"
+msgstr "ペアリングに失敗しました: %s"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:255
+msgid "Pause"
+msgstr "一時停止"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:275
+msgid "Pause for"
+msgstr "指定時間だけ一時停止"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:230
+msgid "Paused"
+msgstr "一時停止中"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:62
+msgid "Paused until %s"
+msgstr "%s まで一時停止中"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:63
+msgid "Paused until resumed"
+msgstr "再開するまで一時停止中"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:256
+msgid "Pausing disconnects the agent: AI assistants cannot reach this router or its network until the time is up or it is resumed."
+msgstr "一時停止するとエージェントが切断され、時間が来るか再開するまで、AI アシスタントはこのルーターとそのネットワークにアクセスできません。"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:115 root/usr/share/luci/menu.d/luci-app-letkite.json
+msgid "Permissions"
+msgstr "権限"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:30
+msgid "Reach LetKite's servers through its access points."
+msgstr "LetKite のアクセスポイント経由で LetKite のサーバーに接続します。"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:21
+msgid "Read and write files on this router."
+msgstr "このルーターのファイルを読み書きします。"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:235
+msgid "Resume"
+msgstr "再開"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:20
+msgid "Run commands"
+msgstr "コマンドの実行"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:20
+msgid "Run commands on this router."
+msgstr "このルーターでコマンドを実行します。"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:77
+msgid "Running"
+msgstr "実行中"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:74
+msgid "Saved."
+msgstr "保存しました。"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:27
+msgid "Send diagnostics that help LetKite fix problems."
+msgstr "LetKite が問題を修正するための診断情報を送信します。"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:77
+msgid "Service"
+msgstr "サービス"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:22
+msgid "Shell"
+msgstr "シェル"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:109
+msgid "Starting…"
+msgstr "開始しています…"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:291
+msgid "Status"
+msgstr "状態"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:26
+msgid "Take the environment variables set in the dashboard."
+msgstr "ダッシュボードで設定した環境変数を使います。"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:23
+msgid "Terminal"
+msgstr "ターミナル"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:57
+msgid "The LetKite agent is not installed. Reinstall the letkite-agent package."
+msgstr "LetKite エージェントがインストールされていません。letkite-agent パッケージを再インストールしてください。"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:284
+msgid "The LetKite agent lets AI assistants on your LetKite account reach this router and the devices behind it, within the permissions you set here."
+msgstr "LetKite エージェントを使うと、LetKite アカウントの AI アシスタントが、ここで設定した権限の範囲で、このルーターとその先のデバイスにアクセスできます。"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:223 htdocs/luci-static/resources/view/letkite/permissions.js:71 htdocs/luci-static/resources/view/letkite/permissions.js:84
+msgid "The agent did not answer."
+msgstr "エージェントが応答しませんでした。"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:111
+msgid "The agent reported no switches."
+msgstr "エージェントからスイッチの報告がありません。"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:181
+msgid "The code is valid for %d minutes."
+msgstr "コードの有効期間は %d 分です。"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:117
+msgid "The most AI assistants may ever do on this router, whatever your LetKite account allows. Changes are written to /etc/letkite/ceiling.toml."
+msgstr "LetKite アカウントの設定にかかわらず、AI アシスタントがこのルーターで行える上限です。変更は /etc/letkite/ceiling.toml に書き込まれます。"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:88
+msgid "This agent version cannot change its permissions from LuCI yet; it will once it updates itself. Until then, edit /etc/letkite/ceiling.toml over SSH."
+msgstr "このバージョンのエージェントは、まだ LuCI から権限を変更できません。自動更新後に可能になります。それまでは SSH で /etc/letkite/ceiling.toml を編集してください。"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:87
+msgid "This agent version does not report its full status to LuCI yet; it will once it updates itself."
+msgstr "このバージョンのエージェントは、まだ LuCI に完全な状態を報告しません。自動更新後に報告するようになります。"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:41
+msgid "This lets AI assistants on your LetKite account act on this router directly, as root, within the rules set in the dashboard. Only allow it if you trust the people and assistants on that account."
+msgstr "これにより、LetKite アカウントの AI アシスタントが、ダッシュボードで設定したルールの範囲で、root としてこのルーターを直接操作できるようになります。そのアカウントの人とアシスタントを信頼できる場合にのみ許可してください。"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:203
+msgid "Try again"
+msgstr "再試行"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:261
+msgid "Until resumed"
+msgstr "再開するまで"
+
+#: htdocs/luci-static/resources/view/letkite/permissions.js:29
+msgid "Updates"
+msgstr "アップデート"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:182
+msgid "Waiting for approval…"
+msgstr "承認を待っています…"
+
+#: htdocs/luci-static/resources/view/letkite/log.js:42
+msgid "What the agent wrote to the system log (logread -e letkite)."
+msgstr "エージェントがシステムログに書き込んだ内容（logread -e letkite）。"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:74
+msgid "Yes"
+msgstr "はい"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:74
+msgid "Yes, as %s"
+msgstr "はい（%s）"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:241
+msgid "e.g. 45m, 2h, 3d"
+msgstr "例: 45m、2h、3d"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:115
+msgid "optional; the host name by default"
+msgstr "任意。既定はホスト名"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:199
+msgid "unknown error"
+msgstr "不明なエラー"

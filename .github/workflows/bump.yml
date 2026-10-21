@@ -1,0 +1,76 @@
+# Every 6 hours: if get.letkite.com's stable channel has a newer agent than
+# the one pinned in packages/letkite-agent/files/release, verify the new
+# release (release.json's Ed25519 signature against the agent release keys
+# in keys/, and SHA256SUMS against release.json), write the new table and
+# open a pull request. Nothing is pinned without a valid signature.
+#
+# Only this workflow may write: its token can push a branch and open a pull
+# request in this repository, nothing else. Pull requests it opens still go
+# through CI and review like any other.
+name: Bump agent release
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bump
+  cancel-in-progress: false
+
+jobs:
+  bump:
+    if: github.repository == 'letkite/letkite-router'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Newer release?
+        id: check
+        run: |
+          latest=$(scripts/release-table.py latest)
+          pinned=$(scripts/release-table.py pinned)
+          echo "stable channel: $latest; pinned: $pinned"
+          if scripts/release-table.py newer "$latest" "$pinned"; then
+            echo "version=$latest" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::the pinned agent $pinned is current"
+          fi
+      - name: Verify the release and write the table
+        if: steps.check.outputs.version != ''
+        env:
+          VERSION: ${{ steps.check.outputs.version }}
+        run: |
+          scripts/release-table.py write "$VERSION"
+          scripts/release-table.py check
+          git diff --stat
+      - name: Open a pull request
+        if: steps.check.outputs.version != ''
+        env:
+          VERSION: ${{ steps.check.outputs.version }}
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          branch="bump/agent-$VERSION"
+          if gh api "repos/$REPO/branches/$branch" > /dev/null 2>&1; then
+            echo "::notice::$branch exists already"
+            exit 0
+          fi
+          git config user.name "letkite"
+          git config user.email "git@letkite.com"
+          git switch -c "$branch"
+          git add packages/letkite-agent/files/release
+          git commit -q -s -m "letkite-agent: pin agent $VERSION" \
+            -m "Verified with scripts/release-table.py: release.json is signed by an agent release key in keys/, and SHA256SUMS matches it."
+          git push -q "https://x-access-token:${GH_TOKEN}@github.com/$REPO.git" "$branch"
+          gh pr create --repo "$REPO" --base main --head "$branch" \
+            --title "letkite-agent: pin agent $VERSION" \
+            --body "The stable channel on get.letkite.com moved to $VERSION. scripts/release-table.py verified release.json's Ed25519 signature against keys/agent-release-keys.txt and checked SHA256SUMS against it before writing the table. CI runs the smoke test with the new release."

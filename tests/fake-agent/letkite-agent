@@ -1,0 +1,88 @@
+#!/bin/sh
+# A stand-in for the LetKite agent's command line, as the LuCI app uses it
+# (the JSON contract below), for the rpcd plugin's tests. It keeps its state
+# in $FAKE_AGENT_STATE and appends each command line it gets to
+# $FAKE_AGENT_STATE/calls, one argument per field, separated by "|".
+#
+#   status --json
+#   enroll --no-browser --json [--name N]    JSON lines: code, then enrolled or error
+#   pause [--for D] | resume
+#   ceiling show --json | ceiling set SWITCH true|false
+#   install | uninstall | --version
+#
+# FAKE_ENROLL: "ok" (default), "error", or "wait" (stays at the code until
+# $FAKE_AGENT_STATE/approve exists). FAKE_FAIL: a command that fails.
+set -u
+state="${FAKE_AGENT_STATE:?FAKE_AGENT_STATE is not set}"
+mkdir -p "$state"
+(IFS='|'; echo "$*") >> "$state/calls"
+
+fail() { echo "error: $*" >&2; exit 1; }
+[ "${FAKE_FAIL:-}" = "${1:-}" ] && fail "${1:-} failed (FAKE_FAIL)"
+
+flag() { [ -f "$state/$1" ] && echo true || echo false; }
+
+case "${1:-}" in
+--version) echo "letkite-agent 9.9.9" ;;
+status)
+	[ "${2:-}" = --json ] || fail "status: only --json here"
+	until=null
+	[ -f "$state/paused_until" ] && until=$(cat "$state/paused_until")
+	cat <<-J
+		{"version":"9.9.9","instance":null,"enrolled":$(flag enrolled),"node_id":$( [ -f "$state/enrolled" ] && echo '"n_fake"' || echo null),"name":"fake-router","gateway_url":"https://gateway.example","connected":$(flag enrolled),"paused":$(flag paused),"paused_until":$until,"service_running":$(flag installed),"last_error":null}
+	J
+	;;
+enroll)
+	shift
+	name=fake-router json=""
+	while [ $# -gt 0 ]; do
+		case "$1" in
+			--no-browser) ;;
+			--json) json=1 ;;
+			--name) name=$2; shift ;;
+			*) fail "enroll: unexpected argument $1" ;;
+		esac
+		shift
+	done
+	[ -n "$json" ] || fail "enroll: --json expected"
+	echo '{"event":"code","user_code":"ABCD-EFGH","verification_uri":"https://id.example/activate","verification_uri_complete":"https://id.example/activate?code=ABCD-EFGH","expires_in":600}'
+	case "${FAKE_ENROLL:-ok}" in
+		error)
+			echo '{"event":"error","code":"expired","message":"the code expired"}'
+			exit 1 ;;
+		wait)
+			while [ ! -f "$state/approve" ]; do sleep 1; done ;;
+	esac
+	touch "$state/enrolled"
+	printf '{"event":"enrolled","node_id":"n_fake","name":"%s"}\n' "$name"
+	;;
+pause)
+	touch "$state/paused"
+	if [ "${2:-}" = --for ]; then echo 1700000000 > "$state/paused_until"; fi
+	echo "paused"
+	;;
+resume) rm -f "$state/paused" "$state/paused_until"; echo "resumed" ;;
+ceiling)
+	case "${2:-}" in
+		show)
+			[ "${3:-}" = --json ] || fail "ceiling show: --json expected"
+			printf '{"path":"/etc/letkite/ceiling.toml"'
+			for s in exec files shell terminal mesh env; do
+				v=true; [ -f "$state/ceiling.$s" ] && v=$(cat "$state/ceiling.$s")
+				printf ',"%s":%s' "$s" "$v"
+			done
+			printf ',"tunnel_targets":["192.168.1.0/24"]}\n'
+			;;
+		set)
+			[ $# -eq 4 ] || fail "ceiling set SWITCH true|false"
+			case "$4" in true | false) ;; *) fail "not true or false: $4" ;; esac
+			echo "$4" > "$state/ceiling.$3"
+			echo "$3 = $4"
+			;;
+		*) fail "ceiling: show or set" ;;
+	esac
+	;;
+install) touch "$state/installed"; echo "installed" ;;
+uninstall) rm -f "$state/installed"; echo "removed" ;;
+*) fail "unknown command: ${1:-}" ;;
+esac
