@@ -1,0 +1,26 @@
+name: Router or device partnership
+description: Preinstalling or integrating the LetKite agent in your firmware or devices. These requests go by email, not here.
+title: "Router partnership"
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for your interest. **Please don't describe your company or products in a public issue.**
+
+        Write to **contact@letkite.com** with a subject starting with **`[Router partnership]`**, and include:
+
+        - your company
+        - the devices and SoCs
+        - the OpenWrt version or vendor SDK
+        - expected volumes
+        - your timeline
+
+        We work with router, NAS and device makers on firmware images with the agent built in, OEM feeds, LuCI branding, joint testing on your hardware, and new architectures such as mipsel.
+  - type: checkboxes
+    id: emailed
+    attributes:
+      label: Email
+      options:
+        - label: I have written to contact@letkite.com instead of describing my request here.
+          required: true

@@ -52,10 +52,13 @@ fi
 
 # A feed at the commit or tag the SDK's feeds.conf.default names, fetched
 # with depth 1 (scripts/feeds would clone the whole history).
+# OpenWrt itself ("base") is linked at its package/ directory.
 feed() { # name
-  local line url ref dir="$cache/feeds-$version/$1"
-  line=$(grep -E "^src-git(-full)? $1 " "$sdk/feeds.conf.default") || die "no feed $1 in feeds.conf.default"
-  url=$(awk '{ print $3 }' <<<"$line")
+  local line url ref root="" dir="$cache/feeds-$version/$1"
+  # src-git[-full] [--root=DIR] NAME URL^COMMIT or URL;TAG
+  line=$(grep -E "^src-git(-full)?( --[^ ]+)* $1 " "$sdk/feeds.conf.default") || die "no feed $1 in feeds.conf.default"
+  url=$(awk '{ print $NF }' <<<"$line")
+  [[ $1 != base ]] || root=/package
   case "$url" in
     *^*) ref=${url#*^}; url=${url%^*} ;;
     *\;*) ref=${url#*;}; url=${url%;*} ;;
@@ -73,7 +76,7 @@ feed() { # name
     git -C "$dir" checkout -q FETCH_HEAD
     echo "$url $ref" > "$dir/.letkite-ref"
   fi
-  echo "src-link $1 $dir"
+  echo "src-link $1 $dir$root"
 }
 
 packages_dir="$repo/packages"

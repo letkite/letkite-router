@@ -12,12 +12,14 @@ set -euo pipefail
 sdk=${1:?usage: make-index.sh SDK DIR}
 dir=${2:?usage: make-index.sh SDK DIR}
 host="$sdk/staging_dir/host/bin"
+# the SDK's scripts call its host tools (mkhash) by name
+export PATH="$host:$PATH"
 cd "$dir"
 
 die() { echo "make-index.sh: $*" >&2; exit 1; }
 
 if compgen -G '*.ipk' > /dev/null; then
-  "$sdk/scripts/ipkg-make-index.sh" . > Packages.manifest 2> /dev/null
+  "$sdk/scripts/ipkg-make-index.sh" . > Packages.manifest
   grep -vE '^(Maintainer|LicenseFiles|Source|SourceName|Require|SourceDateEpoch)' Packages.manifest > Packages
   rm -f Packages.manifest
   # usign's SHA-512 bug: OpenWrt pads these lengths (package/Makefile)

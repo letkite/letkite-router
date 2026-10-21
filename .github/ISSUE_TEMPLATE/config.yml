@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Router or device partnership
+    url: mailto:contact@letkite.com?subject=%5BRouter%20partnership%5D
+    about: "Preinstalling or integrating the agent: email contact@letkite.com, subject [Router partnership]."
+  - name: Security issue
+    url: mailto:contact@letkite.com?subject=%5BSecurity%5D
+    about: "Please report vulnerabilities privately: email contact@letkite.com, subject [Security]."
