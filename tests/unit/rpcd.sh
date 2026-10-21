@@ -16,6 +16,15 @@ export LETKITE_AGENT="$repo/tests/fake-agent/letkite-agent"
 export LETKITE_RUN_DIR="$work/run"
 export LETKITE_CONFIG_DIR="$work/etc"
 export LETKITE_LOGREAD="$work/logread"
+export LETKITE_INIT="$work/init.d/letkite-agent"
+mkdir -p "$work/init.d"
+cat > "$LETKITE_INIT" <<'I'
+#!/bin/sh
+# the procd service: notes what it was asked to do
+echo "$*" >> "$FAKE_AGENT_STATE/init"
+[ "$*" != "restart" ] || [ -z "${FAKE_RESTART_FAIL:-}" ] || { echo "restart failed" >&2; exit 1; }
+I
+chmod +x "$LETKITE_INIT"
 mkdir -p "$FAKE_AGENT_STATE" "$LETKITE_CONFIG_DIR"
 cat > "$LETKITE_LOGREAD" <<'L'
 #!/bin/sh
@@ -34,7 +43,18 @@ field() { # JSON EXPR
 	jsonfilter -s "$1" -e "$2" 2>/dev/null
 }
 calls() { cat "$FAKE_AGENT_STATE/calls" 2>/dev/null; }
-reset_calls() { : > "$FAKE_AGENT_STATE/calls"; }
+reset_calls() { : > "$FAKE_AGENT_STATE/calls"; : > "$FAKE_AGENT_STATE/init"; }
+init_calls() { cat "$FAKE_AGENT_STATE/init" 2>/dev/null; }
+keys() { # JSON EXPR: the object's keys, sorted, on one line
+	(
+		# shellcheck source=/dev/null
+		. /usr/share/libubox/jshn.sh
+		json_load "$(jsonfilter -s "$1" -e "$2" 2>/dev/null)" 2>/dev/null || exit 0
+		k=""
+		json_get_keys k
+		for x in $k; do echo "$x"; done | sort | tr '\n' ' '
+	)
+}
 valid() { [ "$(jsonfilter -s "$1" -t '@' 2>/dev/null)" = object ]; }
 
 echo "# list"
@@ -53,6 +73,10 @@ check_eq "status: agent version" 9.9.9 "$(field "$out" '@.agent.version')"
 check_eq "status: not enrolled" false "$(field "$out" '@.agent.enrolled')"
 check_eq "status: paused_until null passes through" "" "$(field "$out" '@.agent.paused_until')"
 check_eq "status: argv" "status|--json" "$(calls | tail -n 1)"
+check_eq "status: the contract's fields" \
+	"connected enrolled gateway_url instance last_error name node_id paused paused_until service_running version " \
+	"$(keys "$out" '@.agent')"
+check_eq "status: no name before enrolling" "" "$(field "$out" '@.agent.name')"
 
 echo "# status, an agent without status --json"
 out=$(FAKE_FAIL=status call status)
@@ -96,24 +120,60 @@ echo "# ceiling"
 out=$(call ceiling_get)
 check "ceiling_get is JSON" valid "$out"
 check_eq "ceiling_get: supported" true "$(field "$out" '@.supported')"
-check_eq "ceiling_get: exec" true "$(field "$out" '@.ceiling.exec')"
-check_has "ceiling_get: the switches LuCI may set" "$(field "$out" '@.switches')" terminal
+check_eq "ceiling_get: the switches LuCI may set, exactly" \
+	"handover direct updates env accelerate telemetry mesh" "$(jsonfilter -s "$out" -e '@.switches[*]' | tr '\n' ' ' | sed 's/ $//')"
+check_eq "ceiling_get: the contract's fields" "error path settings switches valid " "$(keys "$out" '@.ceiling')"
+check_eq "ceiling_get: valid" true "$(field "$out" '@.ceiling.valid')"
+check_eq "ceiling_get: mesh" true "$(field "$out" '@.ceiling.switches.mesh')"
+check_eq "ceiling_get: handover" false "$(field "$out" '@.ceiling.switches.handover')"
+check_eq "ceiling_get: the read-only shell setting passes through" full "$(field "$out" '@.ceiling.settings.shell')"
+check_eq "ceiling_get: the read-only file scope passes through" '*' "$(field "$out" '@.ceiling.settings.files[0]')"
+check_eq "ceiling_get: the read-only tunnel targets pass through" 192.168.1.0/24 "$(field "$out" '@.ceiling.settings.tunnel_targets[0]')"
 reset_calls
-out=$(call ceiling_set '{"switch":"exec","value":false}')
-check_eq "ceiling_set exec false: ok" true "$(field "$out" '@.ok')"
-check_eq "ceiling_set: argv" "ceiling|set|exec|false" "$(calls)"
-check_eq "ceiling_set took effect" false "$(field "$(call ceiling_get)" '@.ceiling.exec')"
+out=$(call ceiling_set '{"switch":"mesh","value":false}')
+check_eq "ceiling_set mesh false: ok" true "$(field "$out" '@.ok')"
+check_eq "ceiling_set: argv" "ceiling|set|mesh|false" "$(calls)"
+check_has "ceiling_set: the agent's answer" "$(field "$out" '@.output')" "mesh = false"
+check_eq "ceiling_set: the service restarted" restart "$(init_calls)"
+check_eq "ceiling_set: says so" true "$(field "$out" '@.restarted')"
+check_eq "ceiling_set took effect" false "$(field "$(call ceiling_get)" '@.ceiling.switches.mesh')"
+for sw in handover direct updates env accelerate telemetry mesh; do
+	reset_calls
+	out=$(call ceiling_set "{\"switch\":\"$sw\",\"value\":true}")
+	check_eq "ceiling_set $sw true: argv" "ceiling|set|$sw|true" "$(calls)"
+	check_eq "ceiling_set $sw true: ok" true "$(field "$out" '@.ok')"
+done
 reset_calls
-out=$(call ceiling_set '{"switch":"mesh","value":true}')
-check_eq "ceiling_set mesh true: argv" "ceiling|set|mesh|true" "$(calls)"
-for bad in '{"switch":"gui","value":true}' '{"switch":"exec files","value":true}' \
-	'{"switch":"exec;reboot","value":true}' '{"switch":"exec","value":"yes"}' \
-	'{"switch":"exec","value":1}' '{"switch":"exec"}' '{"value":true}' 'not json'; do
+out=$(call ceiling_set '{"switch":"direct","value":"false"}')
+check_eq "ceiling_set takes \"false\" as a string too" "ceiling|set|direct|false" "$(calls)"
+reset_calls
+out=$(FAKE_RESTART_FAIL=1 call ceiling_set '{"switch":"direct","value":true}')
+check_eq "a failed restart: the switch is still set" true "$(field "$out" '@.ok')"
+check_eq "a failed restart: not restarted" false "$(field "$out" '@.restarted')"
+check_has "a failed restart: what it said" "$(field "$out" '@.restart_output')" "restart failed"
+reset_calls
+out=$(FAKE_CEILING=invalid call ceiling_set '{"switch":"direct","value":false}')
+check_eq "the agent refuses: ok false" false "$(field "$out" '@.ok')"
+check_has "the agent refuses: its error" "$(field "$out" '@.error')" "not changed"
+check_eq "the agent refuses: no restart" "" "$(init_calls)"
+for bad in exec files shell terminal gui gui_apps deny tunnel_targets keep_awake local_control exit_node exit \
+	'exec files' 'mesh;reboot' 'MESH' ' mesh' 'mesh '; do
+	reset_calls
+	out=$(call ceiling_set "{\"switch\":\"$bad\",\"value\":true}")
+	check_eq "ceiling_set refuses \"$bad\"" false "$(field "$out" '@.ok')"
+	check_eq "ceiling_set \"$bad\" runs nothing" "" "$(calls)$(init_calls)"
+done
+for bad in '{"switch":"mesh","value":"yes"}' '{"switch":"mesh","value":1}' '{"switch":"mesh"}' \
+	'{"value":true}' '{"switch":["mesh"],"value":true}' 'not json'; do
 	reset_calls
 	out=$(call ceiling_set "$bad")
 	check_eq "ceiling_set refuses $bad" false "$(field "$out" '@.ok')"
-	check_eq "ceiling_set $bad runs nothing" "" "$(calls)"
+	check_eq "ceiling_set $bad runs nothing" "" "$(calls)$(init_calls)"
 done
+out=$(FAKE_CEILING=invalid call ceiling_get)
+check_eq "an invalid ceiling: still answers" true "$(field "$out" '@.supported')"
+check_eq "an invalid ceiling: valid false" false "$(field "$out" '@.ceiling.valid')"
+check_has "an invalid ceiling: why" "$(field "$out" '@.ceiling.error')" "missing field"
 out=$(FAKE_FAIL=ceiling call ceiling_get)
 check_eq "ceiling_get, an agent without it: unsupported" false "$(field "$out" '@.supported')"
 
@@ -157,6 +217,7 @@ while [ $i -lt 20 ]; do
 	i=$((i + 1)); sleep 1
 done
 check_eq "approved: enrolled" enrolled "$(field "$out" '@.state')"
+check_eq "the code event's fields" "expires_in user_code verification_uri verification_uri_complete " "$(keys "$out" '@.code')"
 check_eq "the node" n_fake "$(field "$out" '@.node_id')"
 check_eq "the name" my-router "$(field "$out" '@.name')"
 check_eq "the service is installed after enrolling" true "$(field "$out" '@.service_installed')"
@@ -171,7 +232,7 @@ while [ $i -lt 20 ]; do
 	i=$((i + 1)); sleep 1
 done
 check_eq "a failed enrollment: error" error "$(field "$out" '@.state')"
-check_eq "its message" "the code expired" "$(field "$out" '@.error.message')"
+check_eq "its message" "the code expired before anyone approved it" "$(field "$out" '@.error.message')"
 check_eq "no service install after a failure" "" "$(field "$out" '@.service_installed')"
 
 reset_calls

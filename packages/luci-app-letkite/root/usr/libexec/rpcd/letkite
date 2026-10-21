@@ -21,9 +21,14 @@ AGENT="${LETKITE_AGENT:-/opt/letkite-agent/letkite-agent}"
 RUN_DIR="${LETKITE_RUN_DIR:-/var/run/letkite}"
 CONFIG_DIR="${LETKITE_CONFIG_DIR:-/etc/letkite}"
 LOGREAD="${LETKITE_LOGREAD:-logread}"
+# The agent's procd service (`letkite-agent install` writes it).
+INIT="${LETKITE_INIT:-/etc/init.d/letkite-agent}"
 
-# The ceiling's top-level switches LuCI may turn on or off.
-SWITCHES="exec files shell terminal mesh exit env telemetry direct updates accelerate"
+# The ceiling's switches: its boolean top-level keys, the only ones
+# `letkite-agent ceiling set` changes. The rest (shell, files, gui...) are not
+# true or false; `ceiling show --json` reports them under "settings", and
+# they are changed in ceiling.toml itself.
+SWITCHES="handover direct updates env accelerate telemetry mesh"
 
 NL='
 '
@@ -238,7 +243,27 @@ method_ceiling_set() {
 		boolean:0 | string:false) value=false ;;
 		*) reply_error "value is true or false" ;;
 	esac
-	reply_run ceiling set "$switch" "$value"
+	[ -x "$AGENT" ] || reply_error "the LetKite agent is not installed ($AGENT)"
+	out=$("$AGENT" ceiling set "$switch" "$value" 2>&1)
+	rc=$?
+	json_init
+	json_add_boolean ok "$([ "$rc" -eq 0 ] && echo 1 || echo 0)"
+	json_add_int exit_code "$rc"
+	json_add_string output "$(printf '%s' "$out" | tail -c 4096)"
+	if [ "$rc" -ne 0 ]; then
+		json_add_string error "$(printf '%s' "$out" | tail -n 1)"
+		json_dump
+		return
+	fi
+	# The agent reads its ceiling only when it starts: restart the service,
+	# as `ceiling set` says to.
+	restarted=0
+	if [ -x "$INIT" ]; then
+		rout=$("$INIT" restart 2>&1) && restarted=1
+		json_add_string restart_output "$(printf '%s' "$rout" | tail -c 2048)"
+	fi
+	json_add_boolean restarted "$restarted"
+	json_dump
 }
 
 method_log() {
