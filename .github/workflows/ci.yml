@@ -1,0 +1,181 @@
+# Lint, unit tests, package builds with the official OpenWrt SDKs, and a
+# smoke test of the built packages on OpenWrt in QEMU.
+#
+# Pull requests run with a read-only token and no secrets, on GitHub's own
+# runners. The feed in these runs is signed with a throwaway key made in the
+# run itself; the release keys are only ever used by publish.yml.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  OPENWRT_24: "24.10.8"
+  OPENWRT_25: "25.12.6"
+
+jobs:
+  lint:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: ShellCheck
+        run: scripts/lint-shell.sh
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "22"
+      - name: ESLint (LuCI JavaScript)
+        run: |
+          npm ci --no-audit --no-fund
+          npm run lint
+      - name: JSON (rpcd ACL, LuCI menu)
+        run: |
+          for f in $(git ls-files '*.json'); do
+            python3 -m json.tool "$f" > /dev/null || { echo "::error file=$f::not valid JSON"; exit 1; }
+          done
+      - name: Translations
+        run: |
+          sudo apt-get install -y -q gettext > /dev/null
+          scripts/i18n.py check
+          for f in packages/luci-app-letkite/po/*/*.po; do msgfmt -c -o /dev/null "$f"; done
+
+  unit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Pre-install script (download, SHA-256, architectures)
+        run: tests/unit/fetch.sh
+      - name: Release table (signature, SHA256SUMS)
+        run: tests/unit/release-table.sh
+      - name: The pinned table matches its signed release on get.letkite.com
+        run: scripts/release-table.py check
+      # OpenWrt's own BusyBox, jshn and jsonfilter, from OpenWrt's rootfs
+      # images (pinned by digest)
+      - name: rpcd plugin on OpenWrt 24.10
+        run: |
+          docker run --rm -v "$PWD:/src:ro" \
+            openwrt/rootfs@sha256:44579da4ff257d3702dbe06817b20fefe6b541bde7ea7df5817853f38169be24 \
+            /bin/sh /src/tests/unit/rpcd.sh
+      - name: rpcd plugin on OpenWrt 25.12
+        run: |
+          docker run --rm -v "$PWD:/src:ro" \
+            openwrt/rootfs@sha256:20ea78d46f333ad73c44f3f08e8ecde8190d682a91d5c26836e863f9f740f9af \
+            /bin/sh /src/tests/unit/rpcd.sh
+
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - series: "24.10"
+            format: ipk
+          - series: "25.12"
+            format: apk
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: SDK prerequisites
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q build-essential gawk gettext libncurses-dev python3-setuptools rsync unzip zstd file > /dev/null
+      - name: OpenWrt version
+        id: v
+        run: |
+          case "${{ matrix.series }}" in
+            24.10) echo "version=$OPENWRT_24" >> "$GITHUB_OUTPUT" ;;
+            25.12) echo "version=$OPENWRT_25" >> "$GITHUB_OUTPUT" ;;
+          esac
+      - name: Build (${{ matrix.format }})
+        env:
+          TEST_KEYS: ${{ runner.temp }}/keys
+        run: scripts/sdk-build.sh "${{ steps.v.outputs.version }}" "dist/${{ matrix.series }}"
+      - name: Build a letkite-agent that pins a wrong SHA-256 (for the smoke test)
+        env:
+          TEST_KEYS: ${{ runner.temp }}/keys
+          TAMPER: "1"
+        run: scripts/sdk-build.sh "${{ steps.v.outputs.version }}" "dist/tampered-${{ matrix.series }}"
+      - name: Contents
+        run: |
+          ls -l dist/${{ matrix.series }}
+          for pkg in letkite-agent luci-app-letkite luci-i18n-letkite-{zh-cn,ja,ko,fr,de}; do
+            compgen -G "dist/${{ matrix.series }}/${pkg}[-_][0-9]*.${{ matrix.format }}" > /dev/null \
+              || { echo "::error::no $pkg package"; exit 1; }
+          done
+          # publish.yml derives the published usign key the same way
+          if [ -f "$RUNNER_TEMP/keys/test.sec" ]; then
+            [ "$(scripts/usign-pubkey.py "$RUNNER_TEMP/keys/test.sec" | tail -n 1)" = "$(tail -n 1 "$RUNNER_TEMP/keys/test.pub")" ] \
+              || { echo "::error::scripts/usign-pubkey.py disagrees with usign"; exit 1; }
+          fi
+          # the test key's public half goes along; the secret half stays here
+          mkdir -p dist/keys-${{ matrix.series }}
+          cp "$RUNNER_TEMP"/keys/test.pub* dist/keys-${{ matrix.series }}/
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: packages-${{ matrix.series }}
+          path: |
+            dist/${{ matrix.series }}/*.${{ matrix.format }}
+            dist/${{ matrix.series }}/Packages*
+            dist/${{ matrix.series }}/packages.adb
+            dist/tampered-${{ matrix.series }}/*.${{ matrix.format }}
+            dist/tampered-${{ matrix.series }}/Packages*
+            dist/tampered-${{ matrix.series }}/packages.adb
+            dist/keys-${{ matrix.series }}/
+          if-no-files-found: error
+          retention-days: 7
+      - name: Build logs
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: build-logs-${{ matrix.series }}
+          path: dist/**/build-*.log
+          retention-days: 7
+
+  smoke:
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        series: ["24.10", "25.12"]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: packages-${{ matrix.series }}
+          path: dist
+      - name: QEMU (with KVM)
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q qemu-system-x86 qemu-utils > /dev/null
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm.rules > /dev/null
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          ls -l /dev/kvm || echo "::notice::no KVM: QEMU emulates (slower)"
+      - name: Smoke test on OpenWrt ${{ matrix.series }}
+        run: |
+          case "${{ matrix.series }}" in
+            24.10) version=$OPENWRT_24; key=dist/keys-24.10/test.pub ;;
+            25.12) version=$OPENWRT_25; key=dist/keys-25.12/test.pub.pem ;;
+          esac
+          tests/openwrt/smoke.sh "$version" "dist/${{ matrix.series }}" "$key" "dist/tampered-${{ matrix.series }}"

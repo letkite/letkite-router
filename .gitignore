@@ -1,0 +1,10 @@
+# build output (scripts/sdk-build.sh)
+/dist/
+# lint tooling (package.json)
+/node_modules/
+# signing keys never belong here; the test keys are made in CI
+*.sec
+*.key
+private-key.pem
+key-build*
+__pycache__/

@@ -1,0 +1,9 @@
+# The public halves of LetKite's agent release keys (Ed25519, base64 of the
+# raw 32 bytes). Every agent release's release.json is signed with one of
+# them (release.json.sig: base64 of the signature over "letkite-release-v1\n"
+# followed by release.json's bytes). These are the keys compiled into the
+# agent itself, which checks the same signature before it updates; the
+# second is a standby for rotation. scripts/release-table.py checks a release
+# against them before this repository pins it. Public data, not secrets.
+WHodh2oQjcCUBkVDvRXhcSD906/SHRjZVHc/QMylIlE=
+TLMGy/9NviOWMHA1intKYY5mkTYxvyialZiG7pxos6s=

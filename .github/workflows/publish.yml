@@ -1,0 +1,171 @@
+# On a tag v*: build the packages for OpenWrt 24.10 (.ipk) and 25.12 (.apk),
+# sign the feeds with LetKite's feed keys, and publish them on
+# get.letkite.com:
+#
+#   openwrt/24.10/                 Packages, Packages.gz, Packages.sig, *.ipk
+#   openwrt/25.12/                 packages.adb, *.apk
+#   openwrt/keys/letkite-usign.pub the 24.10 feed's public key
+#   openwrt/keys/letkite-apk.pem   the 25.12 feed's public key
+#
+# Runs in the GitHub environment "release", whose secrets only tag builds of
+# this repository can read (docs/PUBLISHING.md says what they are and who
+# creates them). Until they exist, the job says so and stops, successfully.
+name: Publish
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.repository == 'letkite/letkite-router'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    environment: release
+    permissions:
+      contents: read
+      id-token: write
+    strategy:
+      fail-fast: true
+      max-parallel: 1
+      matrix:
+        include:
+          - series: "24.10"
+            version: "24.10.8"
+          - series: "25.12"
+            version: "25.12.6"
+    env:
+      AWS_REGION: us-east-1
+    steps:
+      - name: Secrets configured?
+        id: secrets
+        env:
+          USIGN_SECRET_KEY: ${{ secrets.USIGN_SECRET_KEY }}
+          APK_SIGN_KEY: ${{ secrets.APK_SIGN_KEY }}
+          AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
+          FEED_BUCKET: ${{ secrets.FEED_BUCKET }}
+          CF_DISTRIBUTION_ID: ${{ secrets.CF_DISTRIBUTION_ID }}
+        run: |
+          case "${{ matrix.series }}" in
+            24.10) needed="USIGN_SECRET_KEY AWS_ROLE_ARN FEED_BUCKET CF_DISTRIBUTION_ID" ;;
+            25.12) needed="APK_SIGN_KEY AWS_ROLE_ARN FEED_BUCKET CF_DISTRIBUTION_ID" ;;
+          esac
+          missing=""
+          for n in $needed; do
+            [ -n "${!n}" ] || missing="$missing $n"
+          done
+          if [ -n "$missing" ]; then
+            echo "::notice::not publishing the ${{ matrix.series }} feed: the release environment has no$missing (docs/PUBLISHING.md)"
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: steps.secrets.outputs.ready == 'true'
+        with:
+          persist-credentials: false
+
+      - name: SDK prerequisites
+        if: steps.secrets.outputs.ready == 'true'
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q build-essential gawk gettext libncurses-dev python3-setuptools rsync unzip zstd file > /dev/null
+
+      - name: The pinned agent release still verifies
+        if: steps.secrets.outputs.ready == 'true'
+        run: scripts/release-table.py check
+
+      - name: Signing key
+        if: steps.secrets.outputs.ready == 'true'
+        env:
+          USIGN_SECRET_KEY: ${{ secrets.USIGN_SECRET_KEY }}
+          APK_SIGN_KEY: ${{ secrets.APK_SIGN_KEY }}
+        run: |
+          umask 077
+          mkdir -p "$RUNNER_TEMP/keys" dist/keys
+          case "${{ matrix.series }}" in
+            24.10)
+              printf '%s\n' "$USIGN_SECRET_KEY" > "$RUNNER_TEMP/keys/usign.sec"
+              scripts/usign-pubkey.py "$RUNNER_TEMP/keys/usign.sec" > dist/keys/letkite-usign.pub
+              echo "FEED_USIGN_KEY=$RUNNER_TEMP/keys/usign.sec" >> "$GITHUB_ENV" ;;
+            25.12)
+              printf '%s\n' "$APK_SIGN_KEY" > "$RUNNER_TEMP/keys/apk.pem"
+              openssl pkey -in "$RUNNER_TEMP/keys/apk.pem" -pubout -out dist/keys/letkite-apk.pem
+              echo "FEED_APK_KEY=$RUNNER_TEMP/keys/apk.pem" >> "$GITHUB_ENV" ;;
+          esac
+          chmod 644 dist/keys/*
+
+      - name: Build and sign
+        if: steps.secrets.outputs.ready == 'true'
+        run: scripts/sdk-build.sh "${{ matrix.version }}" "dist/${{ matrix.series }}"
+
+      - name: Remove the signing key
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/keys"
+
+      - name: Check the signature with the public key
+        if: steps.secrets.outputs.ready == 'true'
+        run: |
+          cd "dist/${{ matrix.series }}"
+          case "${{ matrix.series }}" in
+            24.10)
+              python3 - ../keys/letkite-usign.pub Packages Packages.sig <<'PY'
+          import base64, subprocess, sys, tempfile, os
+          pub = base64.b64decode(open(sys.argv[1]).read().splitlines()[1])
+          sig = base64.b64decode(open(sys.argv[3]).read().splitlines()[1])
+          assert pub[:2] == b"Ed" and sig[:2] == b"Ed" and pub[2:10] == sig[2:10], "Packages.sig is not by this key"
+          with tempfile.TemporaryDirectory() as t:
+              der = bytes.fromhex("302a300506032b6570032100") + pub[10:]
+              open(os.path.join(t, "k.pem"), "w").write("-----BEGIN PUBLIC KEY-----\n" + base64.b64encode(der).decode() + "\n-----END PUBLIC KEY-----\n")
+              open(os.path.join(t, "s"), "wb").write(sig[10:])
+              subprocess.run(["openssl", "pkeyutl", "-verify", "-pubin", "-inkey", os.path.join(t, "k.pem"), "-rawin",
+                              "-in", sys.argv[2], "-sigfile", os.path.join(t, "s")], check=True)
+          PY
+              ;;
+            25.12)
+              ls packages.adb ;;
+          esac
+
+      - uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
+        if: steps.secrets.outputs.ready == 'true'
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: letkite-router-publish-${{ github.run_id }}
+
+      - name: Upload
+        if: steps.secrets.outputs.ready == 'true'
+        env:
+          FEED_BUCKET: ${{ secrets.FEED_BUCKET }}
+        run: |
+          dest="s3://$FEED_BUCKET/openwrt/${{ matrix.series }}"
+          cd "dist/${{ matrix.series }}"
+          # packages first, the index last: an index never names a package
+          # that is not there yet
+          for f in *.ipk *.apk; do
+            [ -e "$f" ] || continue
+            aws s3 cp --only-show-errors --cache-control "public, max-age=86400" "$f" "$dest/$f"
+          done
+          for f in Packages Packages.gz Packages.sig packages.adb; do
+            [ -e "$f" ] || continue
+            aws s3 cp --only-show-errors --cache-control "public, max-age=300" "$f" "$dest/$f"
+          done
+          for f in ../keys/*; do
+            aws s3 cp --only-show-errors --cache-control "public, max-age=3600" "$f" "s3://$FEED_BUCKET/openwrt/keys/$(basename "$f")"
+          done
+
+      - name: Invalidate the CDN
+        if: steps.secrets.outputs.ready == 'true'
+        env:
+          CF_DISTRIBUTION_ID: ${{ secrets.CF_DISTRIBUTION_ID }}
+        run: |
+          aws cloudfront create-invalidation --distribution-id "$CF_DISTRIBUTION_ID" \
+            --paths "/openwrt/${{ matrix.series }}/*" "/openwrt/keys/*" --query Invalidation.Id --output text

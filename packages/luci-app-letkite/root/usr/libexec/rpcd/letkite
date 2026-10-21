@@ -1,0 +1,301 @@
+#!/bin/sh
+# SPDX-License-Identifier: MIT
+#
+# rpcd plugin "letkite": what LuCI's Services > LetKite may ask of the
+# LetKite agent, and nothing else.
+#
+#   ubus call letkite status
+#   ubus call letkite pause '{"duration":"1h"}'
+#
+# rpcd runs `letkite list` once, and `letkite call METHOD` with the
+# arguments as JSON on stdin. Each method runs the agent's command line with
+# a fixed argument list; every parameter is checked against a strict pattern
+# or an allowlist first, and none is ever handed to a shell to parse.
+# /usr/share/rpcd/acl.d/luci-app-letkite.json says who may call what.
+
+# shellcheck source=/dev/null
+. /usr/share/libubox/jshn.sh
+
+# Tests only (tests/unit): a stand-in agent, state directory and log.
+AGENT="${LETKITE_AGENT:-/opt/letkite-agent/letkite-agent}"
+RUN_DIR="${LETKITE_RUN_DIR:-/var/run/letkite}"
+CONFIG_DIR="${LETKITE_CONFIG_DIR:-/etc/letkite}"
+LOGREAD="${LETKITE_LOGREAD:-logread}"
+
+# The ceiling's top-level switches LuCI may turn on or off.
+SWITCHES="exec files shell terminal mesh exit env telemetry direct updates accelerate"
+
+NL='
+'
+
+# STRING matches the extended regular expression ERE as a whole, on one line.
+matches() {
+	case "$1" in "" | *"$NL"*) return 1 ;; esac
+	printf '%s\n' "$1" | grep -qxE "$2"
+}
+
+reply_error() {
+	json_init
+	json_add_boolean ok 0
+	json_add_string error "$1"
+	json_dump
+	exit 0
+}
+
+# Run the agent with these arguments; reply with whether it worked and what
+# it said (the last 4 KB).
+reply_run() {
+	[ -x "$AGENT" ] || reply_error "the LetKite agent is not installed ($AGENT)"
+	out=$("$AGENT" "$@" 2>&1)
+	rc=$?
+	json_init
+	json_add_boolean ok "$([ "$rc" -eq 0 ] && echo 1 || echo 0)"
+	json_add_int exit_code "$rc"
+	json_add_string output "$(printf '%s' "$out" | tail -c 4096)"
+	[ "$rc" -eq 0 ] || json_add_string error "$(printf '%s' "$out" | tail -n 1)"
+	json_dump
+}
+
+# The agent's JSON output, if it printed exactly one JSON object; parsed
+# and printed again, so that what goes back to rpcd is well-formed.
+json_object() {
+	[ "$(jsonfilter -s "$1" -t '@' 2>/dev/null)" = object ] || return 1
+	jsonfilter -s "$1" -e '@'
+}
+
+enroll_running() {
+	pid=$(cat "$RUN_DIR/enroll.pid" 2>/dev/null)
+	[ -n "$pid" ] && kill -0 "$pid" 2>/dev/null
+}
+
+service_running() {
+	ubus call service list '{"name":"letkite-agent"}' 2>/dev/null \
+		| jsonfilter -e '@["letkite-agent"].instances.*.running' 2>/dev/null | grep -q true
+}
+
+method_status() {
+	if [ ! -x "$AGENT" ]; then
+		printf '{"installed":false,"cli":false,"enrolling":false,"agent":{}}\n'
+		return
+	fi
+	enrolling=false
+	enroll_running && enrolling=true
+	if out=$("$AGENT" status --json 2>/dev/null) && agent=$(json_object "$out"); then
+		printf '{"installed":true,"cli":true,"enrolling":%s,"agent":%s}\n' "$enrolling" "$agent"
+		return
+	fi
+	# an agent from before `status --json`: what can be seen from outside
+	json_init
+	json_add_boolean installed 1
+	json_add_boolean cli 0
+	json_add_boolean enrolling "$([ "$enrolling" = true ] && echo 1 || echo 0)"
+	json_add_object agent
+	json_add_string version "$("$AGENT" --version 2>/dev/null | awk '{ print $2 }')"
+	json_add_boolean enrolled "$([ -f "$CONFIG_DIR/agent.toml" ] && echo 1 || echo 0)"
+	json_add_boolean service_running "$(service_running && echo 1 || echo 0)"
+	json_close_object
+	json_dump
+}
+
+enroll_stop() {
+	for f in enroll.pid enroll.agent.pid; do
+		pid=$(cat "$RUN_DIR/$f" 2>/dev/null)
+		[ -n "$pid" ] && kill "$pid" 2>/dev/null
+		rm -f "$RUN_DIR/$f"
+	done
+}
+
+method_enroll_start() {
+	json_load "$1" 2>/dev/null || reply_error "bad arguments"
+	name=""
+	json_get_var name name
+	if [ -n "$name" ]; then
+		matches "$name" '[A-Za-z0-9][A-Za-z0-9._-]{0,62}' \
+			|| reply_error "a name is 1 to 63 letters, digits, dots, dashes and underscores"
+	fi
+	[ -x "$AGENT" ] || reply_error "the LetKite agent is not installed ($AGENT)"
+	enroll_stop
+	if ! mkdir -p "$RUN_DIR" || ! chmod 0700 "$RUN_DIR"; then
+		reply_error "cannot create $RUN_DIR"
+	fi
+	rm -f "$RUN_DIR"/enroll.* "$RUN_DIR"/install.*
+	: > "$RUN_DIR/enroll.jsonl"
+	# In the background: rpcd waits for this script, not for the sign-in.
+	# Once enrolled, `install` (re)starts the service with the enrollment.
+	(
+		if [ -n "$name" ]; then
+			"$AGENT" enroll --no-browser --json --name "$name" > "$RUN_DIR/enroll.jsonl" 2> "$RUN_DIR/enroll.err" &
+		else
+			"$AGENT" enroll --no-browser --json > "$RUN_DIR/enroll.jsonl" 2> "$RUN_DIR/enroll.err" &
+		fi
+		echo $! > "$RUN_DIR/enroll.agent.pid"
+		wait $!
+		rc=$?
+		echo "$rc" > "$RUN_DIR/enroll.rc"
+		if [ "$rc" -eq 0 ]; then
+			"$AGENT" install > "$RUN_DIR/install.log" 2>&1
+			echo $? > "$RUN_DIR/install.rc"
+		fi
+		rm -f "$RUN_DIR/enroll.pid" "$RUN_DIR/enroll.agent.pid"
+	) < /dev/null > /dev/null 2>&1 &
+	echo $! > "$RUN_DIR/enroll.pid"
+	json_init
+	json_add_boolean ok 1
+	json_dump
+}
+
+method_enroll_poll() {
+	state=idle
+	[ -f "$RUN_DIR/enroll.jsonl" ] && state=starting
+	json_init
+	json_add_boolean running "$(enroll_running && echo 1 || echo 0)"
+	if [ -f "$RUN_DIR/enroll.jsonl" ]; then
+		while IFS= read -r line; do
+			case "$(jsonfilter -s "$line" -e '@.event' 2>/dev/null)" in
+			code)
+				state=code
+				json_add_object code
+				for k in user_code verification_uri verification_uri_complete; do
+					json_add_string "$k" "$(jsonfilter -s "$line" -e "@.$k" 2>/dev/null)"
+				done
+				expires=$(jsonfilter -s "$line" -e '@.expires_in' 2>/dev/null)
+				matches "$expires" '[0-9]{1,9}' && json_add_int expires_in "$expires"
+				json_close_object
+				;;
+			enrolled)
+				state=enrolled
+				json_add_string node_id "$(jsonfilter -s "$line" -e '@.node_id' 2>/dev/null)"
+				json_add_string name "$(jsonfilter -s "$line" -e '@.name' 2>/dev/null)"
+				;;
+			error)
+				state=error
+				json_add_object error
+				json_add_string code "$(jsonfilter -s "$line" -e '@.code' 2>/dev/null)"
+				json_add_string message "$(jsonfilter -s "$line" -e '@.message' 2>/dev/null)"
+				json_close_object
+				;;
+			esac
+		done <<-EOF
+			$(tail -n 50 "$RUN_DIR/enroll.jsonl")
+		EOF
+	fi
+	rc=$(cat "$RUN_DIR/enroll.rc" 2>/dev/null)
+	if [ -n "$rc" ] && [ "$rc" != 0 ] && [ "$state" != error ]; then
+		state=error
+		json_add_object error
+		json_add_string code exit
+		json_add_string message "$(tail -n 3 "$RUN_DIR/enroll.err" 2>/dev/null)"
+		json_close_object
+	fi
+	if [ -f "$RUN_DIR/install.rc" ]; then
+		json_add_boolean service_installed "$([ "$(cat "$RUN_DIR/install.rc")" = 0 ] && echo 1 || echo 0)"
+		json_add_string install_output "$(tail -c 2048 "$RUN_DIR/install.log" 2>/dev/null)"
+	fi
+	json_add_string state "$state"
+	json_dump
+}
+
+method_pause() {
+	json_load "$1" 2>/dev/null || reply_error "bad arguments"
+	duration=""
+	json_get_var duration duration
+	if [ -z "$duration" ]; then
+		reply_run pause
+		return
+	fi
+	matches "$duration" '[0-9]{1,4}[mhd]' || reply_error "a duration is a number and m, h or d, e.g. 30m, 1h, 1d"
+	reply_run pause --for "$duration"
+}
+
+method_ceiling_get() {
+	[ -x "$AGENT" ] || reply_error "the LetKite agent is not installed ($AGENT)"
+	if out=$("$AGENT" ceiling show --json 2>/dev/null) && ceiling=$(json_object "$out"); then
+		printf '{"ok":true,"supported":true,"switches":["%s"],"ceiling":%s}\n' \
+			"$(echo "$SWITCHES" | sed 's/ /","/g')" "$ceiling"
+		return
+	fi
+	json_init
+	json_add_boolean ok 1
+	json_add_boolean supported 0
+	json_dump
+}
+
+method_ceiling_set() {
+	json_load "$1" 2>/dev/null || reply_error "bad arguments"
+	switch=""
+	value=""
+	type=""
+	json_get_var switch switch
+	json_get_type type value
+	json_get_var value value
+	matches "$switch" '[a-z_]{1,32}' || reply_error "unknown switch"
+	case " $SWITCHES " in
+		*" $switch "*) ;;
+		*) reply_error "unknown switch: $switch" ;;
+	esac
+	case "$type:$value" in
+		boolean:1 | string:true) value=true ;;
+		boolean:0 | string:false) value=false ;;
+		*) reply_error "value is true or false" ;;
+	esac
+	reply_run ceiling set "$switch" "$value"
+}
+
+method_log() {
+	json_load "$1" 2>/dev/null || reply_error "bad arguments"
+	lines=""
+	json_get_var lines lines
+	[ -n "$lines" ] || lines=200
+	if ! matches "$lines" '[0-9]{1,4}' || [ "$lines" -lt 1 ] || [ "$lines" -gt 1000 ]; then
+		reply_error "lines is 1 to 1000"
+	fi
+	out=$("$LOGREAD" -e letkite 2>/dev/null | tail -n "$lines")
+	json_init
+	json_add_boolean ok 1
+	json_add_array lines
+	if [ -n "$out" ]; then
+		while IFS= read -r line; do
+			json_add_string "" "$line"
+		done <<-EOF
+			$out
+		EOF
+	fi
+	json_close_array
+	json_dump
+}
+
+case "$1" in
+list)
+	cat <<-'EOF'
+		{
+			"status": {},
+			"enroll_start": { "name": "str" },
+			"enroll_poll": {},
+			"pause": { "duration": "str" },
+			"resume": {},
+			"ceiling_get": {},
+			"ceiling_set": { "switch": "str", "value": true },
+			"log": { "lines": 200 }
+		}
+	EOF
+	;;
+call)
+	input=$(cat)
+	[ -n "$input" ] || input='{}'
+	case "$2" in
+		status) method_status ;;
+		enroll_start) method_enroll_start "$input" ;;
+		enroll_poll) method_enroll_poll ;;
+		pause) method_pause "$input" ;;
+		resume) reply_run resume ;;
+		ceiling_get) method_ceiling_get ;;
+		ceiling_set) method_ceiling_set "$input" ;;
+		log) method_log "$input" ;;
+		*) reply_error "unknown method: $2" ;;
+	esac
+	;;
+*)
+	echo "usage: $0 list | call METHOD" >&2
+	exit 1
+	;;
+esac

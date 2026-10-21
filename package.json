@@ -1,0 +1,13 @@
+{
+  "name": "letkite-router",
+  "private": true,
+  "license": "MIT",
+  "description": "Lint tooling for the LuCI app; the packages themselves are built with the OpenWrt SDK.",
+  "scripts": {
+    "lint": "eslint packages/luci-app-letkite/htdocs"
+  },
+  "devDependencies": {
+    "eslint": "9.39.1",
+    "globals": "16.5.0"
+  }
+}
