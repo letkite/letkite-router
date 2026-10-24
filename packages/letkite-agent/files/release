@@ -4,13 +4,13 @@
 # scripts/release-table.py from the release's signed release.json and its
 # SHA256SUMS (see .github/workflows/bump.yml); do not edit by hand.
 # shellcheck disable=SC2034 # read by fetch.sh, by name
-AGENT_VERSION=1.6.1
+AGENT_VERSION=1.7.0
 AGENT_FILE_x86_64=letkite-agent-linux-x86_64
-AGENT_SHA256_x86_64=dcbae183bf902a5145137cbaedf03eaca160d2ef73a5e907ab14b710da67c7c4
-AGENT_SIZE_x86_64=8294440
+AGENT_SHA256_x86_64=1e1caee6a0b78d6740c5cbb3db499bbe59885f5fdef3b76095c62f9d6a4a3f75
+AGENT_SIZE_x86_64=11330288
 AGENT_FILE_arm64=letkite-agent-linux-arm64
-AGENT_SHA256_arm64=a6036770829887e59bda87dbd98029a8519bb845588e1386c84ddb2d9d375c6d
-AGENT_SIZE_arm64=7132560
+AGENT_SHA256_arm64=b1a1254b12f69d4324fbb12b808143cb9e7dc2c157bc412ea8757c5abb129c71
+AGENT_SIZE_arm64=9750216
 AGENT_FILE_armv7=letkite-agent-linux-armv7
-AGENT_SHA256_armv7=e7e9902b13a4b6c99202b7acfa5a713fb26a7429dd3e0c97745b094f3f39706c
-AGENT_SIZE_armv7=7059940
+AGENT_SHA256_armv7=5c76a794693c357d3a07ce8343c32e40979b55d7da18d2e81398edd58cc8a6fa
+AGENT_SIZE_armv7=9629868
