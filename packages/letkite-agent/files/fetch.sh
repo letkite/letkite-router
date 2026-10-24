@@ -95,14 +95,24 @@ esac
 
 eval "want=\${AGENT_SHA256_$arch:-}"
 eval "size=\${AGENT_SIZE_$arch:-0}"
+eval "file=\${AGENT_FILE_$arch:-letkite-agent-linux-$arch}"
 # shellcheck disable=SC2154 # set by the eval above
 [ -n "$want" ] || fail "this package lists no program for $arch"
-file="letkite-agent-linux-$arch"
+# the router build (no desktop, within a router's flash budget), or the full
+# one from a release before it
+# shellcheck disable=SC2154 # set by the eval above
+case "$file" in
+	"letkite-agent-router-linux-$arch" | "letkite-agent-linux-$arch") ;;
+	*) fail "this package lists an unexpected program for $arch: $file" ;;
+esac
 
-# An agent that updated itself since is newer than this table; keep it.
+# An agent that updated itself since is newer than this table; keep it, and
+# this very program. The same version otherwise (the full build where the
+# table has the router build) is replaced.
 if [ -x "$target" ]; then
 	have=$("$target" --version 2>/dev/null | awk '{ print $2 }')
-	if [ -n "$have" ] && version_ge "$have" "$AGENT_VERSION"; then
+	if [ -n "$have" ] && version_ge "$have" "$AGENT_VERSION" \
+		&& { [ "$have" != "$AGENT_VERSION" ] || [ "$(sha256sum "$target" | awk '{ print $1 }')" = "$want" ]; }; then
 		echo "letkite-agent: keeping $target ($have; this package has $AGENT_VERSION)"
 		exit 0
 	fi

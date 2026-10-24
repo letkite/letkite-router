@@ -19,12 +19,12 @@ raw_pub() { openssl pkey -in "$1" -pubout -outform DER | tail -c 32 | base64; }
 printf '# test\n%s\n' "$(raw_pub "$work/other.pem")" > "$work/keys"
 printf '%s\n' "$(raw_pub "$work/key.pem")" >> "$work/keys"
 
-# release VERSION [KEY]: a release of fake programs, signed with KEY
+# release VERSION [KEY [PLATFORMS]]: a release of fake programs, signed with KEY
 release() {
 	local v=$1 key=${2:-$work/key.pem} d="$work/www/agent/v$1"
 	rm -rf "$d"
 	mkdir -p "$d"
-	for p in linux-x86_64 linux-arm64 linux-armv7 windows-x86_64.exe; do
+	for p in ${3:-linux-x86_64 linux-arm64 linux-armv7 windows-x86_64.exe}; do
 		echo "program $p $v" > "$d/letkite-agent-$p"
 	done
 	(cd "$d" && sha256sum letkite-agent-* > SHA256SUMS)
@@ -67,11 +67,35 @@ check_eq "writes the table" 0 "$rc"
 check "the version" grep -qx 'AGENT_VERSION=2.0.0' "$work/release"
 check "x86_64's hash" grep -qx "AGENT_SHA256_x86_64=$(sha256sum "$work/www/agent/v2.0.0/letkite-agent-linux-x86_64" | cut -d' ' -f1)" "$work/release"
 check "armv7's size" grep -qx "AGENT_SIZE_armv7=$(wc -c < "$work/www/agent/v2.0.0/letkite-agent-linux-armv7")" "$work/release"
+check "a release before the router build: the full one" grep -qx "AGENT_FILE_arm64=letkite-agent-linux-arm64" "$work/release"
 rt check
 check_eq "check agrees" 0 "$rc"
 sed -i 's/^AGENT_SIZE_arm64=.*/AGENT_SIZE_arm64=1/' "$work/release"
 rt check
 check_eq "check notices a table edited by hand" 1 "$rc"
+
+echo "# the router build (letkite/letkite#530)"
+release 2.0.1 "" "linux-x86_64 linux-arm64 linux-armv7 router-linux-x86_64 router-linux-arm64 router-linux-armv7 windows-x86_64.exe"
+rt write 2.0.1
+check_eq "writes the table" 0 "$rc"
+for a in x86_64 arm64 armv7; do
+	check "$a: the router build" grep -qx "AGENT_FILE_$a=letkite-agent-router-linux-$a" "$work/release"
+	check "$a: its hash" grep -qx "AGENT_SHA256_$a=$(sha256sum "$work/www/agent/v2.0.1/letkite-agent-router-linux-$a" | cut -d' ' -f1)" "$work/release"
+done
+rt check
+check_eq "check agrees" 0 "$rc"
+release 2.0.1 "" "linux-x86_64 linux-arm64 linux-armv7 router-linux-x86_64 router-linux-arm64 router-linux-armv7"
+sed -i '/letkite-agent-router-linux-arm64$/s/^[0-9a-f]*/0000000000000000000000000000000000000000000000000000000000000000/' "$work/www/agent/v2.0.1/SHA256SUMS"
+rt write 2.0.1
+check_eq "SHA256SUMS disagrees on a router build" 1 "$rc"
+check_has "says so" "$out" "letkite-agent-router-linux-arm64"
+cp "$work/release" "$work/release.partial"
+release 2.0.2 "" "linux-x86_64 linux-arm64 linux-armv7 router-linux-x86_64 router-linux-arm64"
+rt write 2.0.2
+check_eq "router builds for some architectures, not all" 1 "$rc"
+check_has "says which" "$out" "router build for x86_64, arm64 but not for armv7"
+check "the table is untouched" cmp -s "$work/release" "$work/release.partial"
+release 2.0.0 >/dev/null; rt write 2.0.0
 
 echo "# the channel"
 echo '{"version": "2.0.0", "path": "agent/v2.0.0/"}' > "$work/www/channels/stable.json"
