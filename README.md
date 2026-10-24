@@ -46,8 +46,6 @@ On an unsupported router, the install stops with a message that names the reason
 
 ## Install from the LetKite feed
 
-> **Available once the feed is published.** The feed and its keys are not on `get.letkite.com` yet. Until they are, use [Install over SSH](#install-over-ssh).
-
 **OpenWrt 25.12 (apk):**
 
 ```sh
