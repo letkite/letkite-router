@@ -153,6 +153,8 @@ rm -rf /etc/letkite
 2. 软件包的安装前脚本带着一张从 agent 发布生成的表：版本号，以及每种架构程序的 SHA-256（[`packages/letkite-agent/files/release`](packages/letkite-agent/files/release)）。
 3. 脚本下载 `https://get.letkite.com/agent/v<版本>/letkite-agent-router-linux-<架构>`（路由器版：不带桌面部分、体积控制在路由器闪存预算内的 agent；路由器版之前的发布用完整版 `letkite-agent-linux-<架构>`），用 `sha256sum` 核对，完全一致才安装。哈希不符、CPU 不支持、闪存不够或者下载失败时，脚本失败，安装命令也失败，路由器上不会留下程序或服务。opkg（24.10）会就此停下，软件包根本不会装上。apk-tools（25.12）在安装前脚本失败后会继续：它保留这个软件包的记录，记录里只有发布表，并标着脚本出错。用 `apk del -r letkite-agent` 删除它。
 
+4. 安装和升级时，`/opt/letkite-agent` 里已经有的程序比表里的版本新（agent 后来自己升级过），就留着。**同一版本**的，只有 SHA-256 和表里固定的一致才留着，否则脚本用表里固定的程序**替换**它（照上面一样核对）。路由器上跑着完整版（路由器版之前装的或升级到的）就是这样换成同一版本的路由器版。更旧的程序也会被替换。
+
 这张表只会从这样的发布重新生成：它的 `release.json` 带有 LetKite agent 发布密钥之一的有效 Ed25519 签名（[`keys/agent-release-keys.txt`](keys/agent-release-keys.txt)，和 agent 自己信任的是同一组密钥），而且 `SHA256SUMS` 和 `release.json` 一致。[`scripts/release-table.py`](scripts/release-table.py) 负责这些检查；定时的 `bump` 工作流运行它并开 pull request，每次改动时 CI 也会拿固定的表去核对签名过的发布。
 
 之后，agent 自己安装 procd 服务（`letkite-agent install`），并自动升级：它只安装用同一组发布密钥签名的版本，核对大小和 SHA-256，起不来的升级会自动回滚。

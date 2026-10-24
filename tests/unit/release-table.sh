@@ -89,6 +89,12 @@ sed -i '/letkite-agent-router-linux-arm64$/s/^[0-9a-f]*/000000000000000000000000
 rt write 2.0.1
 check_eq "SHA256SUMS disagrees on a router build" 1 "$rc"
 check_has "says so" "$out" "letkite-agent-router-linux-arm64"
+cp "$work/release" "$work/release.partial"
+release 2.0.2 "" "linux-x86_64 linux-arm64 linux-armv7 router-linux-x86_64 router-linux-arm64"
+rt write 2.0.2
+check_eq "router builds for some architectures, not all" 1 "$rc"
+check_has "says which" "$out" "router build for x86_64, arm64 but not for armv7"
+check "the table is untouched" cmp -s "$work/release" "$work/release.partial"
 release 2.0.0 >/dev/null; rt write 2.0.0
 
 echo "# the channel"

@@ -136,6 +136,13 @@ def table_for(version):
     sums = parse_sums(fetch(f"{base}/SHA256SUMS").decode("utf-8", "replace"))
     rows = {}
     artifacts = m.get("artifacts") or {}
+    # the router build for every architecture or for none: release.yml
+    # builds the three together, so a release with some is not one to pin
+    routers = [arch for arch, full in ARCHES.items() if ROUTER + full in artifacts]
+    if routers and len(routers) != len(ARCHES):
+        missing = [arch for arch in ARCHES if arch not in routers]
+        raise Untrusted(f"release.json has the router build for {', '.join(routers)} "
+                        f"but not for {', '.join(missing)}")
     for arch, full in ARCHES.items():
         platform = ROUTER + full if ROUTER + full in artifacts else full
         a = artifacts.get(platform)
