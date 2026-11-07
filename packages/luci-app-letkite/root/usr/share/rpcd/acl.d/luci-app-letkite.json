@@ -3,12 +3,12 @@
 		"description": "Grant access to the LetKite agent (status, pairing, pause, permissions, log)",
 		"read": {
 			"ubus": {
-				"letkite": [ "status", "enroll_poll", "ceiling_get", "log" ]
+				"letkite": [ "status", "ceiling_get", "log" ]
 			}
 		},
 		"write": {
 			"ubus": {
-				"letkite": [ "claim_status", "enroll_start", "pause", "resume", "ceiling_set" ]
+				"letkite": [ "claim_status", "enroll_start", "enroll_poll", "pause", "resume", "ceiling_set" ]
 			}
 		}
 	}

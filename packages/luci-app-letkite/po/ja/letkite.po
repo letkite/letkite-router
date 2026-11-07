@@ -326,3 +326,7 @@ msgstr "off、sandboxed、full のいずれか"
 
 msgid "yes"
 msgstr "はい"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:143
+msgid "Pair"
+msgstr "ペアリング"

@@ -326,3 +326,7 @@ msgstr "off, sandboxed 또는 full"
 
 msgid "yes"
 msgstr "예"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:143
+msgid "Pair"
+msgstr "페어링"

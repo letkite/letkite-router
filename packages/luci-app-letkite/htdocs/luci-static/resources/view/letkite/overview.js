@@ -13,7 +13,9 @@
  */
 
 var callStatus = rpc.declare({ object: 'letkite', method: 'status' });
-var callClaim = rpc.declare({ object: 'letkite', method: 'claim_status', timeout: 20000 });
+var callClaim = rpc.declare({ object: 'letkite', method: 'claim_status', timeout: 30000 });
+var callEnrollStart = rpc.declare({ object: 'letkite', method: 'enroll_start', params: [ 'name' ] });
+var callEnrollPoll = rpc.declare({ object: 'letkite', method: 'enroll_poll' });
 var callPause = rpc.declare({ object: 'letkite', method: 'pause', params: [ 'duration' ] });
 var callResume = rpc.declare({ object: 'letkite', method: 'resume' });
 
@@ -103,18 +105,39 @@ return view.extend({
 		return callStatus().then(L.bind(this.renderStatus, this));
 	},
 
-	/* A short status-with-refresh call; no enrollment process lives in rpcd. */
+	/* Claim uses short status calls; old agents retain explicit enrollment. */
 	pairSection: function(st) {
 		var a = (st && st.agent) || {}, en = a.enrollment || {};
 		if (!st || !st.installed)
 			return E('div');
+		if (a.enrolled && a.last_error)
+			return E('p', { 'class': 'alert-message warning' }, a.last_error);
 		if (a.enrolled)
 			return E('p', { 'class': 'alert-message success' }, a.name ? _('Paired as %s.').format(a.name) : _('Paired.'));
 
+		if (!L.hasViewPermission())
+			return E('div');
 		var parts = [ E('h3', {}, _('Pair this router')) ];
 		if (st.error || (en.error && en.error !== 'expired')) {
 			parts.push(E('p', { 'class': 'alert-message warning' },
 				_('Pairing failed: %s').format(st.error || en.problem || en.error)));
+		}
+		if (this.legacy && !this.enrolling) {
+			parts.push(E('button', {
+				'class': 'cbi-button cbi-button-action',
+				'click': ui.createHandlerFn(this, function() {
+					return callEnrollStart('').then(L.bind(function(res) {
+						if (failed(res)) {
+							ui.addNotification(null, E('p', res.error), 'warning');
+							return;
+						}
+						this.enrolling = true;
+						this.nextStatus = 0;
+						this.renderStatus(this.status);
+					}, this));
+				})
+			}, _('Pair')));
+			return E('div', {}, parts);
 		}
 		if (this.claimStopped) {
 			parts.push(E('button', {
@@ -138,7 +161,7 @@ return view.extend({
 				parts.push(E('p', {}, E('a', { 'href': fallback, 'target': '_blank', 'rel': 'noopener noreferrer' }, fallback)));
 			if (complete)
 				parts.push(E('div', { 'style': 'margin:1em 0' }, qrcode.svg(complete, 220)));
-			parts.push(E('p', { 'role': 'timer' }, _('Code expires in %d seconds.').format(remaining)));
+			parts.push(E('p', { 'role': 'timer', 'id': 'letkite-countdown' }, _('Code expires in %d seconds.').format(remaining)));
 			parts.push(E('p', { 'class': 'spinning' }, _('Waiting for approval…')));
 		}
 		else {
@@ -250,16 +273,47 @@ return view.extend({
 			}
 			if (self.closed)
 				return;
-			dom.content(document.getElementById('letkite-pair'), self.pairSection(self.status));
+			var current = (self.status && self.status.agent && self.status.agent.enrollment) || {};
+			var timer = document.getElementById('letkite-countdown');
+			if (timer && current.user_code)
+				dom.content(timer, _('Code expires in %d seconds.').format(Math.max(0, Math.ceil(current.expires_at - Date.now() / 1000))));
 			if (self.busy || Date.now() < (self.nextStatus || 0))
 				return;
-			var a = (self.status && self.status.agent) || {}, en = a.enrollment || {};
-			var needsCode = !a.enrolled && (!en.user_code || en.expires_at <= Date.now() / 1000);
-			var claim = needsCode && !self.claimStopped && L.hasViewPermission();
+			var a = (self.status && self.status.agent) || {};
+			var claim = self.status.installed && !a.enrolled && !self.legacy && !self.claimStopped && L.hasViewPermission();
+			var enrolling = self.legacy && self.enrolling && L.hasViewPermission();
 			self.busy = true;
-			return (claim ? callClaim() : callStatus()).then(function(next) {
+			return (enrolling ? callEnrollPoll() : claim ? callClaim() : callStatus()).then(function(next) {
 				if (self.closed || !view.isConnected)
 					return;
+				if (next.unsupported) {
+					self.legacy = true;
+					self.enrolling = !!self.status.enrolling;
+					self.renderStatus(self.status);
+					return;
+				}
+				if (enrolling) {
+					var legacyAgent = Object.assign({}, self.status.agent);
+					if (next.state === 'enrolled' && next.running)
+						return;
+					if (next.state === 'enrolled') {
+						self.enrolling = false;
+						legacyAgent.enrolled = true;
+						legacyAgent.name = next.name;
+						legacyAgent.enrollment = {};
+					}
+					else if (next.state === 'error' || !next.running) {
+						self.enrolling = false;
+						legacyAgent.enrollment = {};
+					}
+					else if (next.code) {
+						var old = legacyAgent.enrollment || {};
+						legacyAgent.enrollment = Object.assign({}, next.code, {
+							expires_at: old.user_code === next.code.user_code ? old.expires_at : Date.now() / 1000 + next.code.expires_in
+						});
+					}
+					next = Object.assign({}, self.status, { agent: legacyAgent, error: next.error && next.error.message });
+				}
 				if (failed(next))
 					next = Object.assign({}, self.status, next);
 				var enrollment = (next.agent && next.agent.enrollment) || {};
@@ -273,7 +327,9 @@ return view.extend({
 					ui.addNotification(null, E('p', err.message), 'warning');
 			}).finally(function() {
 				self.busy = false;
-				self.nextStatus = Date.now() + (claim ? 10000 : 3000);
+				var active = self.status.installed && L.hasViewPermission() && !self.status.agent.enrolled
+					&& (self.enrolling || (!self.legacy && !self.claimStopped));
+				self.nextStatus = Date.now() + (active ? 3000 : 10000);
 			});
 		};
 		window.addEventListener('pagehide', stop);

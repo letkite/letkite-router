@@ -7,11 +7,12 @@ repo=$(cd "$here/../.." && pwd)
 . "$here/lib.sh"
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
-mkdir -p "$work/opt/letkite-agent" "$work/etc/letkite" "$work/usr/bin" "$work/usr/share/letkite-agent"
+mkdir -p "$work/etc/init.d" "$work/opt/letkite-agent" "$work/etc/letkite" "$work/usr/bin" "$work/usr/share/letkite-agent"
 cat > "$work/opt/letkite-agent/letkite-agent" <<'AGENT'
 #!/bin/sh
 echo "$*" >> "$TEST_ROOT/calls"
-[ -z "${TEST_INSTALL_FAIL:-}" ]
+[ -z "${TEST_INSTALL_FAIL:-}" ] || exit 1
+[ "$*" != "install --claim" ] || [ -z "${TEST_OLD_AGENT:-}" ]
 AGENT
 cat > "$work/usr/bin/uci" <<'UCI'
 #!/bin/sh
@@ -60,6 +61,24 @@ reset_calls
 if TEST_INSTALL_FAIL=1 sh "$work/defaults.sh"; then rc=0; else rc=$?; fi
 check_eq 'failed first boot: nonzero so uci-defaults retries' 1 "$rc"
 check_eq 'failed first boot: no silent legacy fallback' 'install --claim' "$(calls)"
+reset_calls
+if TEST_OLD_AGENT=1 setup; then rc=0; else rc=$?; fi
+check_eq 'postinst claim on old agent succeeds' 0 "$rc"
+check_eq 'postinst claim falls back to plain install' "$(printf 'install --claim\ninstall')" "$(calls)"
+reset_calls
+touch "$work/etc/letkite/setup.toml"
+TEST_CLAIM=0 sh "$work/defaults.sh"
+check_eq 'setup-only firmware installs with claim=0' install "$(calls)"
+if TEST_CLAIM=0 TEST_INSTALL_FAIL=1 sh "$work/defaults.sh"; then rc=0; else rc=$?; fi
+check_eq 'setup-only firmware failure stays strict' 1 "$rc"
+if TEST_INSTALL_FAIL=1 setup; then rc=0; else rc=$?; fi
+check_eq 'postinst plain install failure is deferred' 0 "$rc"
+reset_calls
+touch "$work/etc/init.d/letkite-agent"
+chmod +x "$work/etc/init.d/letkite-agent"
+sh "$work/defaults.sh"
+check_eq 'already installed service skips second setup' '' "$(calls)"
+rm "$work/etc/init.d/letkite-agent" "$work/etc/letkite/setup.toml"
 mv "$work/opt/letkite-agent/letkite-agent" "$work/opt/letkite-agent/absent"
 if sh "$work/defaults.sh" >/dev/null 2>&1; then rc=0; else rc=$?; fi
 check_eq 'missing firmware binary: fail for retry' 1 "$rc"

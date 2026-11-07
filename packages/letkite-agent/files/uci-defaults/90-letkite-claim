@@ -1,4 +1,5 @@
 #!/bin/sh
 # Runtime only. A firmware may include a verified binary in /opt/letkite-agent.
-[ "$(uci -q get letkite.main.claim)" = 1 ] || exit 0
-/usr/share/letkite-agent/setup.sh
+[ -x /etc/init.d/letkite-agent ] && exit 0
+[ "$(uci -q get letkite.main.claim)" = 1 ] || [ -f /etc/letkite/setup.toml ] || exit 0
+/usr/share/letkite-agent/setup.sh --firstboot

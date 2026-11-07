@@ -87,7 +87,7 @@ wget -qO- https://get.letkite.com/install.sh | sh
 2. 在控制台选择 **添加设备 → 输入代码**，输入设备上的代码，登录并批准。也可使用 id 的 `/device` 链接或手机扫码。
 3. LuCI 显示成功和节点名称。页面开着时，代码过期会自动换新；关闭页面后，浏览器停止轮询和申请新码，服务仍可完成当前代码有效期内的批准。拒绝后需点 **重试**。
 
-需要支持 Card A 认领契约的 agent（1.9.1 之后的版本）。当前软件包固定的版本还不支持；在包含此功能的签名版本发布前，须预置已校验的新 agent 或单独升级。LuCI 会提示这个依赖，不启动旧的后台注册进程。发布后只能通过 `scripts/release-table.py` 更新软件包的签名版本固定表。
+自动认领需要支持 Card A 认领契约的 agent（1.9.1 之后的版本）。较旧的 agent（包括当前固定的 1.6.1）会显示“配对”按钮，使用原有的注册流程。发布后只能通过 `scripts/release-table.py` 更新软件包的签名版本固定表。
 
 ### 固件预装：主人认领
 
@@ -98,11 +98,11 @@ config letkite 'main'
     option claim '1'
 ```
 
-运行时的软件包 postinst 和首次启动的 `/etc/uci-defaults/90-letkite-claim` 调用同一个 setup 脚本。`claim=1` 且没有身份和 setup 文件时，执行 `letkite-agent install --claim`。已有 `/etc/letkite/setup.toml`（自定义网关、CA、名称、标签）及已注册身份会保留，使用普通 `install` 启动服务。首次启动失败会在下次启动重试。默认 `claim=0`；普通新装设备也可在打开 LuCI 时自动初始化认领模式。
+运行时的软件包 postinst 和首次启动的 `/etc/uci-defaults/90-letkite-claim` 调用同一个 setup 脚本。`claim=1` 且没有身份和 setup 文件时，执行 `letkite-agent install --claim`。已有 `/etc/letkite/setup.toml`（自定义网关、CA、名称、标签）及已注册身份会保留，使用普通 `install` 启动服务。运行时 postinst 认领失败会警告并退回普通 install，避免旧 agent 导致软件包安装失败；首次启动仍严格检查，失败会在下次启动重试。存在 setup.toml 时即使 claim=0 也会首次配置；已有 agent 服务则跳过第二次配置。厂商设置 claim=1 的 uci-defaults 脚本必须排在 90-letkite-claim 之前。默认 `claim=0`；普通新装设备也可在打开 LuCI 时自动初始化认领模式。
 
 Image Builder/buildroot 中不会下载程序。**须把经过校验、支持认领的 agent 放进 `files/opt/letkite-agent/letkite-agent`（可执行）**，与软件包和 UCI 选项一起进镜像；否则首次启动脚本提示缺少程序，无法启动服务。镜像绝不能包含 `node.key`、`agent.toml` 或令牌。生产环境的 setup 文件可为空；密钥在设备本地生成。sysupgrade 保留配置和 agent 安装。未认领时 SSH 登录显示运行 `letkite-agent claim` 的提醒，只检查本地文件，不联网。
 
-完整 `setup.toml`、首次启动规则和 CLI/JSON 契约（`status --json --refresh`、`enrollment`、`install --claim`）见 [device-integration.md §5、§5.1](https://github.com/letkite/letkite/blob/dev/docs/device-integration.md#5-无人值守注册)。LuCI 通过需要写权限的 rpcd 方法调用短时 status-with-refresh；只读 `status` 不会申请代码。
+完整 `setup.toml`、首次启动规则和 CLI/JSON 契约（`status --json --refresh`、`enrollment`、`install --claim`）见 [device-integration.md §5、§5.1](https://github.com/letkite/letkite/blob/dev/docs/device-integration.md#5-无人值守注册)。LuCI 通过需要写权限的 rpcd 方法调用短时 status-with-refresh；只读 `status` 不会申请或暴露代码，只读日志也过滤认领和代码行。
 
 **暂停**会断开 agent：30 分钟、1 小时、1 天、自定时长，或者直到手动恢复。**权限**页显示路由器本地的上限（见[权限](#权限)）。**日志**页显示 `logread` 里 agent 的日志。
 

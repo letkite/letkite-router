@@ -11,15 +11,19 @@ if [ "$(uci -q get letkite.main.claim)" = 1 ]; then
 	# Never rewrite a manufacturer's setup.toml (custom gateway/name/CA), or
 	# an existing identity. Plain install honours setup.toml too.
 	if [ ! -f /etc/letkite/setup.toml ] && [ ! -f /etc/letkite/agent.toml ]; then
-		exec "$agent" install --claim
+		if "$agent" install --claim; then
+			exit 0
+		fi
+		[ "${1:-}" = --firstboot ] && exit 1
+		echo "letkite-agent: claim setup failed; falling back to legacy install and LuCI pairing" >&2
 	fi
 fi
 if "$agent" install; then
 	exit 0
 fi
 # Compatibility with agents that cannot install a service before enrollment.
-if [ "$(uci -q get letkite.main.claim)" != 1 ] && [ ! -f /etc/letkite/agent.toml ]; then
-	echo "letkite-agent: not paired yet; update the agent for automatic claim in LuCI, or enroll over SSH."
+if [ "${1:-}" != --firstboot ]; then
+	echo "letkite-agent: service setup deferred; pair in LuCI or enroll over SSH."
 	exit 0
 fi
 exit 1

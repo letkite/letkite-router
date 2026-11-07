@@ -326,3 +326,7 @@ msgstr "off, sandboxed ou full"
 
 msgid "yes"
 msgstr "oui"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:143
+msgid "Pair"
+msgstr "Associer"

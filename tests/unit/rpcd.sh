@@ -32,6 +32,7 @@ cat > "$LETKITE_LOGREAD" <<'L'
 [ "$1 $2" = "-e letkite" ] || exit 1
 echo 'Oct 21 10:00:00 letkite-agent[1]: started'
 echo 'Oct 21 10:00:01 letkite-agent[1]: "quoted" \ back	tab'
+echo 'Oct 21 letkite-agent: Claim code: BDFK-QRTW https://id.example/device?code=BDFK-QRTW'
 echo 'Oct 21 10:00:02 letkite-agent[1]: reconnecting in 5 s'
 L
 chmod +x "$LETKITE_LOGREAD"
@@ -95,6 +96,10 @@ out=$(call claim_status)
 check_eq "claim: new install enters claim mode" 'install|--claim' "$(calls | head -n 1)"
 check_eq "claim: exact status command" 'status|--json|--refresh' "$(calls | tail -n 1)"
 check_eq "claim: code passes through" BDFK-QRTW "$(field "$out" '@.agent.enrollment.user_code')"
+readout=$(call status)
+for key in user_code verification_uri verification_uri_complete; do
+	check_eq "read-only status hides $key" '' "$(field "$readout" "@.agent.enrollment.$key")"
+done
 check_eq "claim: absolute expiry passes through" 1790000600 "$(field "$out" '@.agent.enrollment.expires_at')"
 check_eq "claim: no background enrollment worker" false "$(field "$(call enroll_poll)" '@.running')"
 touch "$LETKITE_CONFIG_DIR/setup.toml"
@@ -115,7 +120,12 @@ check_eq "claim: node name" fake-router "$(field "$out" '@.agent.name')"
 rm -f "$FAKE_AGENT_STATE/claim" "$FAKE_AGENT_STATE/code" "$FAKE_AGENT_STATE/enrolled"
 out=$(call claim_status)
 check_eq "old agent reports unsupported claim" false "$(field "$out" '@.ok')"
+check_eq "old agent with setup: unsupported marker" true "$(field "$out" '@.unsupported')"
+out=$(FAKE_FAIL=status call claim_status)
+check_eq "old agent without JSON with setup: unsupported marker" true "$(field "$out" '@.unsupported')"
 rm -f "$LETKITE_CONFIG_DIR/setup.toml"
+out=$(FAKE_FAIL=install call claim_status)
+check_eq "old agent fresh install: unsupported marker" true "$(field "$out" '@.unsupported')"
 
 echo "# pause and resume"
 reset_calls

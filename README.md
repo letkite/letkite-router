@@ -85,7 +85,7 @@ To pair the router as part of the install, use the command shown in the [dashboa
 2. At the dashboard, choose **Add device → Enter the code**, enter the displayed code, sign in and approve. The id `/device` link and QR code are alternatives.
 3. LuCI shows success with the node name. While the page stays open, expired codes are replaced automatically. Closing it stops browser polling and requests for new codes; the service can finish the current request until its code expires. A refusal requires **Try again**.
 
-This needs an agent with the Card A claim contract (newer than 1.9.1). The current pinned release is older; until a signed release includes it, provide a verified newer agent or upgrade it separately. LuCI reports this dependency instead of launching a legacy enrollment worker. The package pin must only be advanced with `scripts/release-table.py` after that release is published.
+Automatic claim needs an agent with the Card A claim contract (newer than 1.9.1). With older agents, including the pinned 1.6.1, LuCI shows a **Pair** button and uses the existing enrollment flow. The package pin must only be advanced with `scripts/release-table.py` after that release is published.
 
 ### Preinstall in firmware: owner claims it
 
@@ -96,11 +96,11 @@ config letkite 'main'
     option claim '1'
 ```
 
-At runtime, package post-install and the first-boot `/etc/uci-defaults/90-letkite-claim` run the shared setup script. With `claim=1`, it runs `letkite-agent install --claim` when there is no identity or setup file. Existing `/etc/letkite/setup.toml` (custom gateway, CA, name, tags) and enrolled identities are preserved; plain `install` starts their service. An unsuccessful first-boot setup is retried on the next boot. The default is `claim=0`; opening LuCI can also initialize claim mode on an ordinary fresh installation.
+At runtime, package post-install and the first-boot `/etc/uci-defaults/90-letkite-claim` run the shared setup script. With `claim=1`, it runs `letkite-agent install --claim` when there is no identity or setup file. Existing `/etc/letkite/setup.toml` (custom gateway, CA, name, tags) and enrolled identities are preserved; plain `install` starts their service. At post-install, a failed claim attempt warns and falls back to plain install so older agents do not fail package installation. First boot remains strict: an unsuccessful setup is retried on the next boot. First boot also runs with `claim=0` when `setup.toml` exists, and skips setup if the agent service already exists. A maker’s own uci-defaults script that sets `claim=1` must sort before `90-letkite-claim`. The default is `claim=0`; opening LuCI can also initialize claim mode on an ordinary fresh installation.
 
 The package pre-install download is skipped in Image Builder/buildroot. **Include a verified agent with claim support at `files/opt/letkite-agent/letkite-agent` (executable)**, together with the packages and the UCI option; otherwise the first-boot script reports a missing binary and cannot start the service. Never include `node.key`, `agent.toml` or tokens. A production setup file may be empty. Keys are generated on the device; sysupgrade preserves the configuration and agent installation. SSH login displays a local-file-only reminder to run `letkite-agent claim` while unclaimed.
 
-See [device-integration.md §5 and §5.1](https://github.com/letkite/letkite/blob/dev/docs/device-integration.md#5-无人值守注册) for `setup.toml`, first-boot behavior and the exact CLI/JSON contract (`status --json --refresh`, `enrollment`, `install --claim`). LuCI uses the short status-with-refresh call through a write-authorized rpcd method; read-only `status` never requests codes.
+See [device-integration.md §5 and §5.1](https://github.com/letkite/letkite/blob/dev/docs/device-integration.md#5-无人值守注册) for `setup.toml`, first-boot behavior and the exact CLI/JSON contract (`status --json --refresh`, `enrollment`, `install --claim`). LuCI uses the short status-with-refresh call through a write-authorized rpcd method; read-only `status` never requests or exposes codes, and read-only logs filter claim/code lines.
 
 **Pause** disconnects the agent for 30 minutes, an hour, a day, a custom time, or until you resume it. **Permissions** shows the router's local ceiling (see [Permissions](#permissions)). **Log** shows the agent's lines from `logread`.
 

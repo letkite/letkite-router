@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 
-function harness() {
+function harness(writable = true) {
   const nodes = {}, listeners = {}, calls = [], polls = new Set();
   let clock = 1790000000000, response;
   function E(tag, attrs, children) {
@@ -25,7 +25,7 @@ function harness() {
     poll: { add: fn => polls.add(fn), remove: fn => polls.delete(fn) },
     dom: { content: (node, children) => { node.children = children; } },
     qrcode: { svg: url => E('svg', { url }) },
-    L: { bind: (fn, self) => fn.bind(self), hasViewPermission: () => true }
+    L: { bind: (fn, self) => fn.bind(self), hasViewPermission: () => writable }
   });
   vm.runInContext("String.prototype.format = function(...args) { let i=0; return this.replace(/%[sd]/g, () => args[i++]); };", ctx);
   const source = fs.readFileSync('packages/luci-app-letkite/htdocs/luci-static/resources/view/letkite/overview.js', 'utf8');
@@ -73,7 +73,7 @@ test('opening asks automatically, countdown expires and refreshes, then success 
   h.advance(11);
   h.set({ installed: true, agent: { enrolled: true, name: 'owrt-arm', enrollment: { state: 'enrolled' } } });
   await h.tick();
-  assert.equal(h.calls.at(-1), 'status');
+  assert.equal(h.calls.at(-1), 'claim_status');
   assert.match(text(h.nodes['letkite-pair']), /Paired as owrt-arm/);
   h.advance(20);
   await h.tick();
@@ -129,4 +129,74 @@ test('a response arriving after closing the page cannot restart polling', async 
   await h.tick();
   assert.equal(h.calls.length, 1);
   assert.equal(h.polls.size, 0);
+});
+
+test('old agents fall back to explicit Pair, poll the code, and finish', async () => {
+  const h = harness();
+  h.set({ ok: false, unsupported: true });
+  await h.tick();
+  assert.equal(text(find(h.nodes['letkite-pair'], 'button')[0]), 'Pair');
+  const button = find(h.nodes['letkite-pair'], 'button')[0];
+  h.advance(1);
+  await h.tick();
+  assert.equal(find(h.nodes['letkite-pair'], 'button')[0], button);
+  h.set({ ok: true });
+  await button.attrs.click();
+  assert.equal(h.calls.at(-1), 'enroll_start');
+  h.set({ running: true, state: 'code', code: { ...h.code, expires_in: 600 } });
+  await h.tick();
+  assert.equal(h.calls.at(-1), 'enroll_poll');
+  assert.match(text(h.nodes['letkite-pair']), /BDFK-QRTW/);
+  h.advance(3);
+  h.set({ running: false, state: 'enrolled', name: 'old-router' });
+  await h.tick();
+  assert.match(text(h.nodes['letkite-pair']), /Paired as old-router/);
+});
+
+test('read-only view hides credentials and uses ten-second status polling', async () => {
+  const h = harness(false);
+  h.set(h.status(h.code));
+  await h.tick();
+  assert.deepEqual(h.calls, ['status']);
+  assert.doesNotMatch(text(h.nodes['letkite-pair']), /BDFK|https:/);
+  h.advance(3);
+  await h.tick();
+  assert.equal(h.calls.length, 1);
+  h.advance(7);
+  await h.tick();
+  assert.deepEqual(h.calls, ['status', 'status']);
+});
+
+test('countdown retains QR, active claims poll at three seconds, idle at ten', async () => {
+  const h = harness();
+  h.set(h.status(h.code));
+  await h.tick();
+  const qr = find(h.nodes['letkite-pair'], 'svg')[0];
+  h.advance(1);
+  await h.tick();
+  assert.equal(find(h.nodes['letkite-pair'], 'svg')[0], qr);
+  assert.match(text(h.nodes['letkite-countdown']), /599 seconds/);
+  h.advance(2);
+  h.set({ installed: true, agent: { enrolled: true, name: 'router' } });
+  await h.tick();
+  assert.equal(h.calls.length, 2);
+  h.advance(3);
+  await h.tick();
+  assert.equal(h.calls.length, 2);
+  h.advance(7);
+  await h.tick();
+  assert.equal(h.calls.at(-1), 'status');
+});
+
+test('removed identity shows last_error instead of paired success', () => {
+  const h = harness();
+  assert.equal(text(h.app.pairSection({ installed: true, agent: { enrolled: true, name: 'gone', last_error: 'removed' } })), 'removed');
+});
+
+test('codes and legacy enrollment polling require the write ACL', () => {
+  const acl = JSON.parse(fs.readFileSync('packages/luci-app-letkite/root/usr/share/rpcd/acl.d/luci-app-letkite.json', 'utf8'))['luci-app-letkite'];
+  for (const method of ['claim_status', 'enroll_start', 'enroll_poll']) {
+    assert.ok(!acl.read.ubus.letkite.includes(method));
+    assert.ok(acl.write.ubus.letkite.includes(method));
+  }
 });

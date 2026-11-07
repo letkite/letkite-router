@@ -78,6 +78,11 @@ service_running() {
 		| jsonfilter -e '@["letkite-agent"].instances.*.running' 2>/dev/null | grep -q true
 }
 
+reply_unsupported() {
+	printf '{"ok":false,"unsupported":true}\n'
+	exit 0
+}
+
 method_status() {
 	if [ ! -x "$AGENT" ]; then
 		printf '{"installed":false,"cli":false,"enrolling":false,"agent":{}}\n'
@@ -86,6 +91,15 @@ method_status() {
 	enrolling=false
 	enroll_running && enrolling=true
 	if out=$("$AGENT" status --json 2>/dev/null) && agent=$(json_object "$out"); then
+		# Read ACL: codes are bearer credentials, reserved for claim_status.
+		json_load "$agent"
+		if json_select enrollment >/dev/null 2>&1; then
+			for key in user_code verification_uri verification_uri_complete; do
+				json_add_string "$key" ""
+			done
+			json_select ..
+		fi
+		agent=$(json_dump)
 		printf '{"installed":true,"cli":true,"enrolling":%s,"agent":%s}\n' "$enrolling" "$agent"
 		return
 	fi
@@ -108,12 +122,12 @@ method_claim_status() {
 	# Existing manual installs can enter claim mode when the owner opens LuCI.
 	if [ ! -f "$CONFIG_DIR/setup.toml" ] && [ ! -f "$CONFIG_DIR/agent.toml" ]; then
 		"$AGENT" install --claim >/dev/null 2>&1 \
-			|| reply_error "claim mode requires an agent newer than 1.9.1; update the agent and try again"
+			|| reply_unsupported
 	fi
 	out=$("$AGENT" status --json --refresh 2>/dev/null)
-	agent=$(json_object "$out") || reply_error "the agent did not return claim status"
+	agent=$(json_object "$out") || reply_unsupported
 	[ "$(jsonfilter -s "$agent" -t '@.enrollment' 2>/dev/null)" = object ] \
-		|| reply_error "claim mode requires an agent newer than 1.9.1; update the agent and try again"
+		|| reply_unsupported
 	printf '{"installed":true,"cli":true,"agent":%s}\n' "$agent"
 }
 
@@ -289,7 +303,7 @@ method_log() {
 	if ! matches "$lines" '[0-9]{1,4}' || [ "$lines" -lt 1 ] || [ "$lines" -gt 1000 ]; then
 		reply_error "lines is 1 to 1000"
 	fi
-	out=$("$LOGREAD" -e letkite 2>/dev/null | tail -n "$lines")
+	out=$("$LOGREAD" -e letkite 2>/dev/null | grep -viE 'claim|user_code|verification_uri' | grep -vE '(^|[^A-Z])[A-Z]{4}-[A-Z]{4}([^A-Z]|$)' | tail -n "$lines")
 	json_init
 	json_add_boolean ok 1
 	json_add_array lines

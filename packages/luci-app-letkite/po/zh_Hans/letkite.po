@@ -326,3 +326,7 @@ msgstr "off、sandboxed 或 full"
 
 msgid "yes"
 msgstr "是"
+
+#: htdocs/luci-static/resources/view/letkite/overview.js:143
+msgid "Pair"
+msgstr "配对"
