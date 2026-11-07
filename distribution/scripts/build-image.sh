@@ -42,7 +42,7 @@ name=$(awk '{print $2}' "$sums" | sed 's/^\*//' | grep -E '^openwrt-imagebuilder
 [[ -n $name && $name != */* ]] || die "ImageBuilder archive not present in official checksum list"
 archive="$cache/$name"
 [[ -f $archive ]] || curl -fsSL --retry 3 "$site/$name" -o "$archive"
-(cd "$cache" && awk -v n="$name" '{f=$2; sub(/^\\*/, "", f); if (f==n) print $1 "  " n}' "$sums" | sha256sum --check --status) || die "SHA-256 mismatch for $archive"
+(cd "$cache" && awk -v n="$name" '{f=$2; if (substr(f,1,1)=="*") f=substr(f,2); if (f==n) print $1 "  " n}' "$sums" | sha256sum --check --status) || die "SHA-256 mismatch for $archive"
 ib="$cache/${name%.tar.zst}"
 [[ -d $ib ]] || tar --zstd -xf "$archive" -C "$cache"
 [[ -f $ib/Makefile ]] || die "ImageBuilder not extracted"
