@@ -20,11 +20,10 @@ case "$profile" in ax3000t|x86-full) ;; *) die "supported profiles: ax3000t, x86
 # Profiles are audited source-controlled files, never externally supplied.
 # shellcheck source=/dev/null
 source "$root/distribution/profiles/$profile.env"
-packages="$BASE_PACKAGES $EXTRA_PACKAGES"
-if [[ ${ENABLE_DOCKER:-1} == 0 ]]; then
-  packages=${packages//dockerd/}
-  packages=${packages//docker/}
-elif [[ $DOCKER_SUPPORTED == 0 && ${ENABLE_DOCKER:-0} == 1 ]]; then
+packages="$BASE_PACKAGES"
+if [[ "$DOCKER_SUPPORTED" == 1 && "${ENABLE_DOCKER:-1}" == 1 ]]; then
+  packages="$packages $EXTRA_PACKAGES"
+elif [[ "$DOCKER_SUPPORTED" == 0 && "${ENABLE_DOCKER:-0}" == 1 ]]; then
   die "Docker is disabled on this constrained Xiaomi profile"
 fi
 if [[ ${ENABLE_PROXY:-0} == 1 ]]; then packages="$packages sing-box"; fi
