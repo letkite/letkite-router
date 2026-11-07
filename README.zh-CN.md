@@ -102,7 +102,7 @@ config letkite 'main'
 
 Image Builder/buildroot 中不会下载程序。**须把经过校验、支持认领的 agent 放进 `files/opt/letkite-agent/letkite-agent`（可执行）**，与软件包和 UCI 选项一起进镜像；否则首次启动脚本提示缺少程序，无法启动服务。镜像绝不能包含 `node.key`、`agent.toml` 或令牌。生产环境的 setup 文件可为空；密钥在设备本地生成。sysupgrade 保留配置和 agent 安装。未认领时 SSH 登录显示运行 `letkite-agent claim` 的提醒，只检查本地文件，不联网。
 
-完整 `setup.toml`、首次启动规则和 CLI/JSON 契约（`status --json --refresh`、`enrollment`、`install --claim`）见 [device-integration.md §5、§5.1](https://github.com/letkite/letkite/blob/dev/docs/device-integration.md#5-注册)。LuCI 通过需要写权限的 rpcd 方法调用短时 status-with-refresh；只读 `status` 不会申请代码。
+完整 `setup.toml`、首次启动规则和 CLI/JSON 契约（`status --json --refresh`、`enrollment`、`install --claim`）见 [device-integration.md §5、§5.1](https://github.com/letkite/letkite/blob/dev/docs/device-integration.md#5-无人值守注册)。LuCI 通过需要写权限的 rpcd 方法调用短时 status-with-refresh；只读 `status` 不会申请代码。
 
 **暂停**会断开 agent：30 分钟、1 小时、1 天、自定时长，或者直到手动恢复。**权限**页显示路由器本地的上限（见[权限](#权限)）。**日志**页显示 `logread` 里 agent 的日志。
 

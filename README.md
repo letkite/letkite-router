@@ -100,7 +100,7 @@ At runtime, package post-install and the first-boot `/etc/uci-defaults/90-letkit
 
 The package pre-install download is skipped in Image Builder/buildroot. **Include a verified agent with claim support at `files/opt/letkite-agent/letkite-agent` (executable)**, together with the packages and the UCI option; otherwise the first-boot script reports a missing binary and cannot start the service. Never include `node.key`, `agent.toml` or tokens. A production setup file may be empty. Keys are generated on the device; sysupgrade preserves the configuration and agent installation. SSH login displays a local-file-only reminder to run `letkite-agent claim` while unclaimed.
 
-See [device-integration.md §5 and §5.1](https://github.com/letkite/letkite/blob/dev/docs/device-integration.md#5-注册) for `setup.toml`, first-boot behavior and the exact CLI/JSON contract (`status --json --refresh`, `enrollment`, `install --claim`). LuCI uses the short status-with-refresh call through a write-authorized rpcd method; read-only `status` never requests codes.
+See [device-integration.md §5 and §5.1](https://github.com/letkite/letkite/blob/dev/docs/device-integration.md#5-无人值守注册) for `setup.toml`, first-boot behavior and the exact CLI/JSON contract (`status --json --refresh`, `enrollment`, `install --claim`). LuCI uses the short status-with-refresh call through a write-authorized rpcd method; read-only `status` never requests codes.
 
 **Pause** disconnects the agent for 30 minutes, an hour, a day, a custom time, or until you resume it. **Permissions** shows the router's local ceiling (see [Permissions](#permissions)). **Log** shows the agent's lines from `logread`.
 
