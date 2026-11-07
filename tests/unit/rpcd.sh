@@ -32,6 +32,7 @@ cat > "$LETKITE_LOGREAD" <<'L'
 [ "$1 $2" = "-e letkite" ] || exit 1
 echo 'Oct 21 10:00:00 letkite-agent[1]: started'
 echo 'Oct 21 10:00:01 letkite-agent[1]: "quoted" \ back	tab'
+echo 'Oct 21 letkite-agent: Claim code: BDFK-QRTW https://id.example/device?code=BDFK-QRTW'
 echo 'Oct 21 10:00:02 letkite-agent[1]: reconnecting in 5 s'
 L
 chmod +x "$LETKITE_LOGREAD"
@@ -60,10 +61,10 @@ valid() { [ "$(jsonfilter -s "$1" -t '@' 2>/dev/null)" = object ]; }
 echo "# list"
 out=$("$plugin" list)
 check "list is a JSON object" valid "$out"
-for m in status enroll_start enroll_poll pause resume ceiling_get ceiling_set log; do
+for m in status claim_status enroll_start enroll_poll pause resume ceiling_get ceiling_set log; do
 	check "list has $m" [ "$(jsonfilter -s "$out" -t "@.$m")" = object ]
 done
-check_eq "list has nothing else" 8 "$(jsonfilter -s "$out" -e '@.*' | wc -l | tr -d ' ')"
+check_eq "list has nothing else" 9 "$(jsonfilter -s "$out" -e '@.*' | wc -l | tr -d ' ')"
 
 echo "# status"
 out=$(call status)
@@ -74,7 +75,7 @@ check_eq "status: not enrolled" false "$(field "$out" '@.agent.enrolled')"
 check_eq "status: paused_until null passes through" "" "$(field "$out" '@.agent.paused_until')"
 check_eq "status: argv" "status|--json" "$(calls | tail -n 1)"
 check_eq "status: the contract's fields" \
-	"connected enrolled gateway_url instance last_error name node_id paused paused_until service_running version " \
+	"connected enrolled enrollment gateway_url instance last_error name node_id paused paused_until service_running version " \
 	"$(keys "$out" '@.agent')"
 check_eq "status: no name before enrolling" "" "$(field "$out" '@.agent.name')"
 
@@ -88,6 +89,43 @@ check_eq "fallback: enrolled from agent.toml" false "$(field "$out" '@.agent.enr
 echo "# status, no agent"
 out=$(LETKITE_AGENT=/nonexistent call status)
 check_eq "no agent: installed false" false "$(field "$out" '@.installed')"
+
+echo "# on-demand claim: no worker process, exact card A contract"
+reset_calls
+out=$(call claim_status)
+check_eq "claim: new install enters claim mode" 'install|--claim' "$(calls | head -n 1)"
+check_eq "claim: exact status command" 'status|--json|--refresh' "$(calls | tail -n 1)"
+check_eq "claim: code passes through" BDFK-QRTW "$(field "$out" '@.agent.enrollment.user_code')"
+readout=$(call status)
+for key in user_code verification_uri verification_uri_complete; do
+	check_eq "read-only status hides $key" '' "$(field "$readout" "@.agent.enrollment.$key")"
+done
+check_eq "claim: absolute expiry passes through" 1790000600 "$(field "$out" '@.agent.enrollment.expires_at')"
+check_eq "claim: no background enrollment worker" false "$(field "$(call enroll_poll)" '@.running')"
+touch "$LETKITE_CONFIG_DIR/setup.toml"
+reset_calls
+out=$(call claim_status)
+check_eq "claim: existing setup not rewritten" 'status|--json|--refresh' "$(calls)"
+rm -f "$FAKE_AGENT_STATE/code"
+reset_calls
+out=$(call status)
+check_eq "read-only status never asks for a code" 'status|--json' "$(calls)"
+check_eq "read-only status: expired" unclaimed "$(field "$out" '@.agent.enrollment.state')"
+out=$(call claim_status)
+check_eq "refresh gets another code" waiting "$(field "$out" '@.agent.enrollment.state')"
+touch "$FAKE_AGENT_STATE/enrolled"
+out=$(call claim_status)
+check_eq "claim: success" enrolled "$(field "$out" '@.agent.enrollment.state')"
+check_eq "claim: node name" fake-router "$(field "$out" '@.agent.name')"
+rm -f "$FAKE_AGENT_STATE/claim" "$FAKE_AGENT_STATE/code" "$FAKE_AGENT_STATE/enrolled"
+out=$(call claim_status)
+check_eq "old agent reports unsupported claim" false "$(field "$out" '@.ok')"
+check_eq "old agent with setup: unsupported marker" true "$(field "$out" '@.unsupported')"
+out=$(FAKE_FAIL=status call claim_status)
+check_eq "old agent without JSON with setup: unsupported marker" true "$(field "$out" '@.unsupported')"
+rm -f "$LETKITE_CONFIG_DIR/setup.toml"
+out=$(FAKE_FAIL=install call claim_status)
+check_eq "old agent fresh install: unsupported marker" true "$(field "$out" '@.unsupported')"
 
 echo "# pause and resume"
 reset_calls

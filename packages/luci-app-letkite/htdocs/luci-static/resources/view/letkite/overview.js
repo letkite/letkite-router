@@ -13,6 +13,7 @@
  */
 
 var callStatus = rpc.declare({ object: 'letkite', method: 'status' });
+var callClaim = rpc.declare({ object: 'letkite', method: 'claim_status', timeout: 30000 });
 var callEnrollStart = rpc.declare({ object: 'letkite', method: 'enroll_start', params: [ 'name' ] });
 var callEnrollPoll = rpc.declare({ object: 'letkite', method: 'enroll_poll' });
 var callPause = rpc.declare({ object: 'letkite', method: 'pause', params: [ 'duration' ] });
@@ -21,10 +22,13 @@ var callResume = rpc.declare({ object: 'letkite', method: 'resume' });
 var DASHBOARD = 'https://dashboard.letkite.com';
 var DOCS = 'https://github.com/letkite/letkite-router#readme';
 var DURATION = /^[0-9]{1,4}[mhd]$/;
-var NAME = /^[A-Za-z0-9][A-Za-z0-9._-]{0,62}$/;
 
 function httpsLink(url) {
 	return (typeof url == 'string' && /^https:\/\/[^\s"'<>]+$/.test(url)) ? url : null;
+}
+
+function terminalError(enrollment) {
+	return enrollment && enrollment.error && [ 'expired', 'unreachable' ].indexOf(enrollment.error) < 0;
 }
 
 function when(seconds) {
@@ -43,7 +47,7 @@ function failed(res) {
 }
 
 return view.extend({
-	enrollPolling: false,
+	claimStopped: false,
 
 	load: function() {
 		return callStatus();
@@ -89,124 +93,83 @@ return view.extend({
 	},
 
 	renderStatus: function(st) {
+		var before = (this.status && this.status.agent) || {}, after = (st && st.agent) || {};
 		this.status = st;
 		dom.content(document.getElementById('letkite-status'), this.statusTable(st));
 		dom.content(document.getElementById('letkite-pair'), this.pairSection(st));
-		dom.content(document.getElementById('letkite-pause'), this.pauseSection(st));
+		if (!!before.enrolled !== !!after.enrolled || !!before.paused !== !!after.paused || before.paused_until !== after.paused_until)
+			dom.content(document.getElementById('letkite-pause'), this.pauseSection(st));
 	},
 
 	refresh: function() {
 		return callStatus().then(L.bind(this.renderStatus, this));
 	},
 
-	/* Pairing: the agent shows a code to approve after signing in. */
-
+	/* Claim uses short status calls; old agents retain explicit enrollment. */
 	pairSection: function(st) {
-		if (!st || !st.installed || (st.agent && st.agent.enrolled))
+		var a = (st && st.agent) || {}, en = a.enrollment || {};
+		if (!st || !st.installed)
 			return E('div');
-		if (this.enrollPolling || st.enrolling) {
-			this.startEnrollPoll();
-			return E('div', { 'id': 'letkite-enroll' }, [ E('p', { 'class': 'spinning' }, _('Starting…')) ]);
+		if (a.enrolled && a.last_error)
+			return E('p', { 'class': 'alert-message warning' }, a.last_error);
+		if (a.enrolled)
+			return E('p', { 'class': 'alert-message success' }, a.name ? _('Paired as %s.').format(a.name) : _('Paired.'));
+
+		if (!L.hasViewPermission())
+			return E('div');
+		var parts = [ E('h3', {}, _('Pair this router')) ];
+		if (st.error || (en.error && en.error !== 'expired')) {
+			parts.push(E('p', { 'class': 'alert-message warning' },
+				_('Pairing failed: %s').format(st.error || en.problem || en.error)));
 		}
-
-		var name = E('input', {
-			'class': 'cbi-input-text',
-			'type': 'text',
-			'placeholder': _('optional; the host name by default'),
-			'maxlength': 63
-		});
-
-		return E('div', {}, [
-			E('h3', {}, _('Pair this router')),
-			E('p', {}, _('Pairing connects this router to your LetKite account. You will get a code to approve after signing in.')),
-			E('div', { 'class': 'cbi-value' }, [
-				E('label', { 'class': 'cbi-value-title' }, _('Name')),
-				E('div', { 'class': 'cbi-value-field' }, [ name ])
-			]),
-			E('button', {
-				'class': 'cbi-button cbi-button-action important',
+		if (this.legacy && !this.enrolling) {
+			parts.push(E('button', {
+				'class': 'cbi-button cbi-button-action',
 				'click': ui.createHandlerFn(this, function() {
-					var n = name.value.trim();
-					if (n && !NAME.test(n)) {
-						ui.addNotification(null, E('p', _('A name is 1 to 63 letters, digits, dots, dashes and underscores.')), 'warning');
-						return;
-					}
-					return callEnrollStart(n || null).then(L.bind(function(res) {
+					return callEnrollStart('').then(L.bind(function(res) {
 						if (failed(res)) {
-							ui.addNotification(null, E('p', res ? res.error : _('Pairing could not start.')), 'danger');
+							ui.addNotification(null, E('p', res.error), 'warning');
 							return;
 						}
-						this.enrollPolling = true;
-						return this.refresh();
+						this.enrolling = true;
+						this.nextStatus = 0;
+						this.renderStatus(this.status);
 					}, this));
 				})
-			}, _('Pair'))
-		]);
-	},
-
-	startEnrollPoll: function() {
-		if (this.enrollPollFn)
-			return;
-		this.enrollPollFn = L.bind(function() {
-			return callEnrollPoll().then(L.bind(this.renderEnroll, this));
-		}, this);
-		poll.add(this.enrollPollFn, 2);
-	},
-
-	stopEnrollPoll: function() {
-		if (this.enrollPollFn)
-			poll.remove(this.enrollPollFn);
-		this.enrollPollFn = null;
-		this.enrollPolling = false;
-	},
-
-	renderEnroll: function(res) {
-		var box = document.getElementById('letkite-enroll');
-		if (!box || !res)
-			return;
-
-		if (res.state === 'code' && res.code) {
-			var link = httpsLink(res.code.verification_uri_complete) || httpsLink(res.code.verification_uri);
-			var parts = [
-				E('h3', {}, _('Approve this router')),
-				E('p', {}, _('Open the link, sign in to LetKite and approve the code. You can scan the QR code with your phone.')),
-				E('p', { 'style': 'font-size:2em;font-family:monospace;letter-spacing:.1em' }, res.code.user_code || '')
-			];
-			if (link) {
-				parts.push(E('p', {}, E('a', { 'href': link, 'target': '_blank', 'rel': 'noopener noreferrer' }, link)));
-				parts.push(E('div', { 'style': 'margin:1em 0' }, qrcode.svg(link, 220)));
-			}
-			if (res.code.expires_in)
-				parts.push(E('p', { 'class': 'cbi-value-description' },
-					_('The code is valid for %d minutes.').format(Math.round(res.code.expires_in / 60))));
+			}, _('Pair')));
+			return E('div', {}, parts);
+		}
+		if (this.claimStopped) {
+			parts.push(E('button', {
+				'class': 'cbi-button cbi-button-action',
+				'click': ui.createHandlerFn(this, function() {
+					this.claimStopped = false;
+					this.nextStatus = 0;
+				})
+			}, _('Try again')));
+			return E('div', {}, parts);
+		}
+		var remaining = Math.max(0, Math.ceil((en.expires_at || 0) - Date.now() / 1000));
+		if (en.user_code && remaining) {
+			parts.push(E('p', { 'style': 'font-size:2.5em;font-family:monospace;letter-spacing:.1em' }, en.user_code));
+			var fallback = httpsLink(en.verification_uri), complete = httpsLink(en.verification_uri_complete);
+			var dashboard = fallback && /^https:\/\/id\.[^/]+\//.test(fallback)
+				? fallback.replace(/^https:\/\/id\.([^/]+)\/.*$/, 'https://dashboard.$1') : DASHBOARD;
+			parts.push(E('p', {}, _('Enter it at %s → Add device → Enter the code').format(dashboard)));
+			parts.push(E('p', {}, E('a', { 'href': dashboard, 'target': '_blank', 'rel': 'noopener noreferrer' }, _('Open the dashboard'))));
+			if (fallback)
+				parts.push(E('p', {}, E('a', { 'href': fallback, 'target': '_blank', 'rel': 'noopener noreferrer' }, fallback)));
+			if (complete)
+				parts.push(E('div', { 'style': 'margin:1em 0' }, qrcode.svg(complete, 220)));
+			parts.push(E('p', { 'role': 'timer', 'id': 'letkite-countdown' }, _('Code expires in %d seconds.').format(remaining)));
 			parts.push(E('p', { 'class': 'spinning' }, _('Waiting for approval…')));
-			dom.content(box, parts);
 		}
-		else if (res.state === 'enrolled') {
-			if (res.running)
-				return dom.content(box, E('p', { 'class': 'spinning' }, _('Approved; starting the service…')));
-			this.stopEnrollPoll();
-			var msg = [ E('p', {}, res.name ? _('Paired as %s.').format(res.name) : _('Paired.')) ];
-			if (res.service_installed === false)
-				msg.push(E('pre', {}, res.install_output || ''));
-			ui.addNotification(null, msg, res.service_installed === false ? 'warning' : 'info');
-			return this.refresh();
+		else {
+			parts.push(E('p', { 'class': 'spinning' }, _('Starting…')));
+			if (en.problem)
+				parts.push(E('p', {}, en.problem));
 		}
-		else if (res.state === 'error') {
-			this.stopEnrollPoll();
-			var err = res.error || {};
-			dom.content(box, [
-				E('p', { 'class': 'alert-message warning' }, _('Pairing failed: %s').format(err.message || err.code || _('unknown error'))),
-				E('button', {
-					'class': 'cbi-button cbi-button-action',
-					'click': ui.createHandlerFn(this, function() { return this.refresh(); })
-				}, _('Try again'))
-			]);
-		}
-		else if (!res.running && res.state === 'idle') {
-			this.stopEnrollPoll();
-			return this.refresh();
-		}
+		return E('div', {}, parts);
 	},
 
 	/* Pause and resume. */
@@ -278,6 +241,7 @@ return view.extend({
 	},
 
 	render: function(st) {
+		this.claimStopped = !!terminalError(st && st.agent && st.agent.enrollment);
 		var view = E('div', { 'class': 'cbi-map' }, [
 			E('h2', {}, _('LetKite')),
 			E('div', { 'class': 'cbi-map-descr' }, [
@@ -296,17 +260,80 @@ return view.extend({
 		]);
 
 		this.status = st;
-		poll.add(L.bind(function() {
-			if (this.enrollPollFn)
+		var self = this;
+		var stop = function() {
+			self.closed = true;
+			poll.remove(tick);
+			window.removeEventListener('pagehide', stop);
+		};
+		var tick = function() {
+			if (!view.isConnected) {
+				stop();
 				return;
-			return callStatus().then(L.bind(function(next) {
-				dom.content(document.getElementById('letkite-status'), this.statusTable(next));
-				var was = this.status || {}, wa = was.agent || {}, na = (next && next.agent) || {};
-				if (!!wa.enrolled !== !!na.enrolled || !!wa.paused !== !!na.paused || wa.paused_until !== na.paused_until || !!was.installed !== !!(next && next.installed))
-					this.renderStatus(next);
-				this.status = next;
-			}, this));
-		}, this), 10);
+			}
+			if (self.closed)
+				return;
+			var current = (self.status && self.status.agent && self.status.agent.enrollment) || {};
+			var timer = document.getElementById('letkite-countdown');
+			if (timer && current.user_code)
+				dom.content(timer, _('Code expires in %d seconds.').format(Math.max(0, Math.ceil(current.expires_at - Date.now() / 1000))));
+			if (self.busy || Date.now() < (self.nextStatus || 0))
+				return;
+			var a = (self.status && self.status.agent) || {};
+			var claim = self.status.installed && !a.enrolled && !self.legacy && !self.claimStopped && L.hasViewPermission();
+			var enrolling = self.legacy && self.enrolling && L.hasViewPermission();
+			self.busy = true;
+			return (enrolling ? callEnrollPoll() : claim ? callClaim() : callStatus()).then(function(next) {
+				if (self.closed || !view.isConnected)
+					return;
+				if (next.unsupported) {
+					self.legacy = true;
+					self.enrolling = !!self.status.enrolling;
+					self.renderStatus(self.status);
+					return;
+				}
+				if (enrolling) {
+					var legacyAgent = Object.assign({}, self.status.agent);
+					if (next.state === 'enrolled' && next.running)
+						return;
+					if (next.state === 'enrolled') {
+						self.enrolling = false;
+						legacyAgent.enrolled = true;
+						legacyAgent.name = next.name;
+						legacyAgent.enrollment = {};
+					}
+					else if (next.state === 'error' || !next.running) {
+						self.enrolling = false;
+						legacyAgent.enrollment = {};
+					}
+					else if (next.code) {
+						var old = legacyAgent.enrollment || {};
+						legacyAgent.enrollment = Object.assign({}, next.code, {
+							expires_at: old.user_code === next.code.user_code ? old.expires_at : Date.now() / 1000 + next.code.expires_in
+						});
+					}
+					next = Object.assign({}, self.status, { agent: legacyAgent, error: next.error && next.error.message });
+				}
+				if (failed(next))
+					next = Object.assign({}, self.status, next);
+				var enrollment = (next.agent && next.agent.enrollment) || {};
+				if (failed(next) || terminalError(enrollment))
+					self.claimStopped = true;
+				if (self.claimStopped && !next.agent.enrolled && !next.error && self.status.error)
+					next.error = self.status.error;
+				self.renderStatus(next);
+			}).catch(function(err) {
+				if (!self.closed && view.isConnected)
+					ui.addNotification(null, E('p', err.message), 'warning');
+			}).finally(function() {
+				self.busy = false;
+				var active = self.status.installed && L.hasViewPermission() && !self.status.agent.enrolled
+					&& (self.enrolling || (!self.legacy && !self.claimStopped));
+				self.nextStatus = Date.now() + (active ? 3000 : 10000);
+			});
+		};
+		window.addEventListener('pagehide', stop);
+		poll.add(tick, 1);
 
 		return view;
 	},

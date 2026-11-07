@@ -58,6 +58,10 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - name: LuCI claim lifecycle
+        run: node --test tests/unit/overview.cjs
+      - name: Firmware setup and SSH reminder
+        run: tests/unit/setup.sh
       - name: Pre-install script (download, SHA-256, architectures)
         run: tests/unit/fetch.sh
       - name: Release table (signature, SHA256SUMS)
