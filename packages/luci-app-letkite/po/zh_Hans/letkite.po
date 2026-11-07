@@ -326,4 +326,3 @@ msgstr "off、sandboxed 或 full"
 
 msgid "yes"
 msgstr "是"
-

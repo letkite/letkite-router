@@ -326,4 +326,3 @@ msgstr "off, sandboxed ou full"
 
 msgid "yes"
 msgstr "oui"
-

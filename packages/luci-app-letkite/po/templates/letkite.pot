@@ -1,23 +1,23 @@
 msgid ""
 msgstr "Content-Type: text/plain; charset=UTF-8\n"
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:198
+#: htdocs/luci-static/resources/view/letkite/overview.js:200
 msgid "1 day"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:197
+#: htdocs/luci-static/resources/view/letkite/overview.js:199
 msgid "1 hour"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:196
+#: htdocs/luci-static/resources/view/letkite/overview.js:198
 msgid "30 minutes"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:208
+#: htdocs/luci-static/resources/view/letkite/overview.js:210
 msgid "A duration is a number and m, h or d, e.g. 30m, 1h, 1d."
 msgstr ""
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:169
+#: htdocs/luci-static/resources/view/letkite/overview.js:171
 msgid "AI assistants cannot reach this router until it is resumed."
 msgstr ""
 
@@ -57,7 +57,7 @@ msgstr ""
 msgid "Changes are written to %s, and the agent restarts to apply them."
 msgstr ""
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:139
+#: htdocs/luci-static/resources/view/letkite/overview.js:141
 msgid "Code expires in %d seconds."
 msgstr ""
 
@@ -81,11 +81,11 @@ msgstr ""
 msgid "Direct transfers"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:227
+#: htdocs/luci-static/resources/view/letkite/overview.js:229
 msgid "Documentation"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:133
+#: htdocs/luci-static/resources/view/letkite/overview.js:135
 msgid "Enter it at %s → Add device → Enter the code"
 msgstr ""
 
@@ -133,7 +133,7 @@ msgstr ""
 msgid "Let someone at this device hand it over to AI assistants and leave. Meant for desktops; a router has no use for it."
 msgstr ""
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:221 root/usr/share/luci/menu.d/luci-app-letkite.json
+#: htdocs/luci-static/resources/view/letkite/overview.js:223 root/usr/share/luci/menu.d/luci-app-letkite.json
 msgid "LetKite"
 msgstr ""
 
@@ -169,7 +169,7 @@ msgstr ""
 msgid "Only turn it on if you trust the people and assistants on that account."
 msgstr ""
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:134 htdocs/luci-static/resources/view/letkite/overview.js:225
+#: htdocs/luci-static/resources/view/letkite/overview.js:136 htdocs/luci-static/resources/view/letkite/overview.js:227
 msgid "Open the dashboard"
 msgstr ""
 
@@ -181,7 +181,7 @@ msgstr ""
 msgid "Overview"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:112
+#: htdocs/luci-static/resources/view/letkite/overview.js:114
 msgid "Pair this router"
 msgstr ""
 
@@ -189,15 +189,15 @@ msgstr ""
 msgid "Paired"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:110
+#: htdocs/luci-static/resources/view/letkite/overview.js:112
 msgid "Paired as %s."
 msgstr ""
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:110
+#: htdocs/luci-static/resources/view/letkite/overview.js:112
 msgid "Paired."
 msgstr ""
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:115
+#: htdocs/luci-static/resources/view/letkite/overview.js:117
 msgid "Pairing failed: %s"
 msgstr ""
 
@@ -205,7 +205,7 @@ msgstr ""
 msgid "Paths no one may read or write"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:193
+#: htdocs/luci-static/resources/view/letkite/overview.js:195
 msgid "Pause"
 msgstr ""
 
@@ -213,11 +213,11 @@ msgstr ""
 msgid "Pause at this device"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:213
+#: htdocs/luci-static/resources/view/letkite/overview.js:215
 msgid "Pause for"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:168
+#: htdocs/luci-static/resources/view/letkite/overview.js:170
 msgid "Paused"
 msgstr ""
 
@@ -229,7 +229,7 @@ msgstr ""
 msgid "Paused until resumed"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:194
+#: htdocs/luci-static/resources/view/letkite/overview.js:196
 msgid "Pausing disconnects the agent: AI assistants cannot reach this router or its network until the time is up or it is resumed."
 msgstr ""
 
@@ -241,7 +241,7 @@ msgstr ""
 msgid "Reach LetKite's servers through its access points."
 msgstr ""
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:173
+#: htdocs/luci-static/resources/view/letkite/overview.js:175
 msgid "Resume"
 msgstr ""
 
@@ -277,11 +277,11 @@ msgstr ""
 msgid "Set only on LetKite's own servers"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:143
+#: htdocs/luci-static/resources/view/letkite/overview.js:145
 msgid "Starting…"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:230
+#: htdocs/luci-static/resources/view/letkite/overview.js:232
 msgid "Status"
 msgstr ""
 
@@ -297,7 +297,7 @@ msgstr ""
 msgid "The LetKite agent is not installed. Reinstall the letkite-agent package."
 msgstr ""
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:223
+#: htdocs/luci-static/resources/view/letkite/overview.js:225
 msgid "The LetKite agent lets AI assistants on your LetKite account reach this router and the devices behind it, within the permissions you set here."
 msgstr ""
 
@@ -309,7 +309,7 @@ msgstr ""
 msgid "The agent cannot read %s, and does not start until it is fixed: %s"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:161 htdocs/luci-static/resources/view/letkite/permissions.js:113 htdocs/luci-static/resources/view/letkite/permissions.js:176
+#: htdocs/luci-static/resources/view/letkite/overview.js:163 htdocs/luci-static/resources/view/letkite/permissions.js:113 htdocs/luci-static/resources/view/letkite/permissions.js:176
 msgid "The agent did not answer."
 msgstr ""
 
@@ -345,7 +345,7 @@ msgstr ""
 msgid "This agent version does not report its full status to LuCI yet; it will once it updates itself."
 msgstr ""
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:124
+#: htdocs/luci-static/resources/view/letkite/overview.js:126
 msgid "Try again"
 msgstr ""
 
@@ -361,7 +361,7 @@ msgstr ""
 msgid "Turn on %s?"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:199
+#: htdocs/luci-static/resources/view/letkite/overview.js:201
 msgid "Until resumed"
 msgstr ""
 
@@ -369,7 +369,7 @@ msgstr ""
 msgid "Updates"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:140
+#: htdocs/luci-static/resources/view/letkite/overview.js:142
 msgid "Waiting for approval…"
 msgstr ""
 
@@ -393,7 +393,7 @@ msgstr ""
 msgid "Yes, as %s"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:179
+#: htdocs/luci-static/resources/view/letkite/overview.js:181
 msgid "e.g. 45m, 2h, 3d"
 msgstr ""
 

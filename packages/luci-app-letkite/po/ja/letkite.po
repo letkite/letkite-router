@@ -326,4 +326,3 @@ msgstr "off、sandboxed、full のいずれか"
 
 msgid "yes"
 msgstr "はい"
-

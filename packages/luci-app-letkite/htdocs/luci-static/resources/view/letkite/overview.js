@@ -91,10 +91,12 @@ return view.extend({
 	},
 
 	renderStatus: function(st) {
+		var before = (this.status && this.status.agent) || {}, after = (st && st.agent) || {};
 		this.status = st;
 		dom.content(document.getElementById('letkite-status'), this.statusTable(st));
 		dom.content(document.getElementById('letkite-pair'), this.pairSection(st));
-		dom.content(document.getElementById('letkite-pause'), this.pauseSection(st));
+		if (!!before.enrolled !== !!after.enrolled || !!before.paused !== !!after.paused || before.paused_until !== after.paused_until)
+			dom.content(document.getElementById('letkite-pause'), this.pauseSection(st));
 	},
 
 	refresh: function() {

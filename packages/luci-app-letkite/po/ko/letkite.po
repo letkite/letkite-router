@@ -326,4 +326,3 @@ msgstr "off, sandboxed 또는 full"
 
 msgid "yes"
 msgstr "예"
-
