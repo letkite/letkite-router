@@ -102,6 +102,21 @@ method_status() {
 	json_dump
 }
 
+# A write method: may request a code, unlike the read-only status method.
+method_claim_status() {
+	[ -x "$AGENT" ] || reply_error "the LetKite agent is not installed ($AGENT)"
+	# Existing manual installs can enter claim mode when the owner opens LuCI.
+	if [ ! -f "$CONFIG_DIR/setup.toml" ] && [ ! -f "$CONFIG_DIR/agent.toml" ]; then
+		"$AGENT" install --claim >/dev/null 2>&1 \
+			|| reply_error "claim mode requires an agent newer than 1.9.1; update the agent and try again"
+	fi
+	out=$("$AGENT" status --json --refresh 2>/dev/null)
+	agent=$(json_object "$out") || reply_error "the agent did not return claim status"
+	[ "$(jsonfilter -s "$agent" -t '@.enrollment' 2>/dev/null)" = object ] \
+		|| reply_error "claim mode requires an agent newer than 1.9.1; update the agent and try again"
+	printf '{"installed":true,"cli":true,"agent":%s}\n' "$agent"
+}
+
 enroll_stop() {
 	for f in enroll.pid enroll.agent.pid; do
 		pid=$(cat "$RUN_DIR/$f" 2>/dev/null)
@@ -294,6 +309,7 @@ list)
 	cat <<-'EOF'
 		{
 			"status": {},
+			"claim_status": {},
 			"enroll_start": { "name": "str" },
 			"enroll_poll": {},
 			"pause": { "duration": "str" },
@@ -309,6 +325,7 @@ call)
 	[ -n "$input" ] || input='{}'
 	case "$2" in
 		status) method_status ;;
+		claim_status) method_claim_status ;;
 		enroll_start) method_enroll_start "$input" ;;
 		enroll_poll) method_enroll_poll ;;
 		pause) method_pause "$input" ;;

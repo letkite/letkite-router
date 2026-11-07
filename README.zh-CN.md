@@ -83,9 +83,26 @@ wget -qO- https://get.letkite.com/install.sh | sh
 
 ## 在 LuCI 里配对
 
-1. 打开 **服务 → LetKite → 概览**，点 **配对**。可以给路由器起个名字。
-2. LuCI 显示一个配对码、一个链接和一个二维码。打开链接（或用手机扫码），登录 LetKite，批准这个配对码。
-3. 批准以后，路由器出现在你的控制台里，agent 的服务随之启动。
+1. 打开 **服务 → LetKite → 概览**。未认领的路由器自动显示大号配对码、二维码和倒计时。
+2. 在控制台选择 **添加设备 → 输入代码**，输入设备上的代码，登录并批准。也可使用 id 的 `/device` 链接或手机扫码。
+3. LuCI 显示成功和节点名称。页面开着时，代码过期会自动换新；关闭页面后，浏览器停止轮询和申请新码，服务仍可完成当前代码有效期内的批准。拒绝后需点 **重试**。
+
+需要支持 Card A 认领契约的 agent（1.9.1 之后的版本）。当前软件包固定的版本还不支持；在包含此功能的签名版本发布前，须预置已校验的新 agent 或单独升级。LuCI 会提示这个依赖，不启动旧的后台注册进程。发布后只能通过 `scripts/release-table.py` 更新软件包的签名版本固定表。
+
+### 固件预装：主人认领
+
+在镜像的 `/etc/config/letkite` 中设置（或安装软件包前用 UCI 设置）：
+
+```uci
+config letkite 'main'
+    option claim '1'
+```
+
+运行时的软件包 postinst 和首次启动的 `/etc/uci-defaults/90-letkite-claim` 调用同一个 setup 脚本。`claim=1` 且没有身份和 setup 文件时，执行 `letkite-agent install --claim`。已有 `/etc/letkite/setup.toml`（自定义网关、CA、名称、标签）及已注册身份会保留，使用普通 `install` 启动服务。首次启动失败会在下次启动重试。默认 `claim=0`；普通新装设备也可在打开 LuCI 时自动初始化认领模式。
+
+Image Builder/buildroot 中不会下载程序。**须把经过校验、支持认领的 agent 放进 `files/opt/letkite-agent/letkite-agent`（可执行）**，与软件包和 UCI 选项一起进镜像；否则首次启动脚本提示缺少程序，无法启动服务。镜像绝不能包含 `node.key`、`agent.toml` 或令牌。生产环境的 setup 文件可为空；密钥在设备本地生成。sysupgrade 保留配置和 agent 安装。未认领时 SSH 登录显示运行 `letkite-agent claim` 的提醒，只检查本地文件，不联网。
+
+完整 `setup.toml`、首次启动规则和 CLI/JSON 契约（`status --json --refresh`、`enrollment`、`install --claim`）见 [device-integration.md §5、§5.1](https://github.com/letkite/letkite/blob/dev/docs/device-integration.md#5-注册)。LuCI 通过需要写权限的 rpcd 方法调用短时 status-with-refresh；只读 `status` 不会申请代码。
 
 **暂停**会断开 agent：30 分钟、1 小时、1 天、自定时长，或者直到手动恢复。**权限**页显示路由器本地的上限（见[权限](#权限)）。**日志**页显示 `logread` 里 agent 的日志。
 
@@ -159,7 +176,7 @@ rm -rf /etc/letkite
 
 之后，agent 自己安装 procd 服务（`letkite-agent install`），并自动升级：它只安装用同一组发布密钥签名的版本，核对大小和 SHA-256，起不来的升级会自动回滚。
 
-**为什么 `apk audit` 不报异常。** 软件包不拥有 `/opt/letkite-agent/letkite-agent`，程序文件不在包里。agent 自我升级时会替换这个文件；如果它属于软件包，替换后就会显示为被修改。软件包只拥有发布表 `/usr/share/letkite-agent/release`。init 脚本和 sysupgrade 保留清单属于 agent，由它在安装时写入、在卸载时删除，所以软件包和 agent 对服务的认识始终一致。
+**为什么 `apk audit` 不报异常。** 软件包不拥有 `/opt/letkite-agent/letkite-agent`，程序文件不在包里。agent 自我升级时会替换这个文件；如果它属于软件包，替换后就会显示为被修改。软件包拥有发布表、setup 辅助脚本、UCI 配置、首次启动脚本和 SSH 提醒。init 脚本和 sysupgrade 保留清单属于 agent，由它在安装时写入、在卸载时删除，所以软件包和 agent 对服务的认识始终一致。
 
 ## 安全
 

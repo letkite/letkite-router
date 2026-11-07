@@ -33,6 +33,17 @@ case "${1:-}" in
 --version) echo "letkite-agent 9.9.9" ;;
 status)
 	[ "${2:-}" = --json ] || fail "status: only --json here"
+	enrollment=null
+	if [ -f "$state/claim" ]; then
+		if [ -f "$state/enrolled" ]; then
+			enrollment='{"state":"enrolled","user_code":null,"verification_uri":null,"verification_uri_complete":null,"expires_at":null,"error":null,"problem":null}'
+		elif [ "${3:-}" = --refresh ] || [ -f "$state/code" ]; then
+			touch "$state/code"
+			enrollment='{"state":"waiting","user_code":"BDFK-QRTW","verification_uri":"https://id.example/device","verification_uri_complete":"https://id.example/device?code=BDFK-QRTW","expires_at":1790000600,"error":null,"problem":null}'
+		else
+			enrollment='{"state":"unclaimed","user_code":null,"verification_uri":null,"verification_uri_complete":null,"expires_at":null,"error":"expired","problem":null}'
+		fi
+	fi
 	until=null
 	[ -f "$state/paused_until" ] && until=$(cat "$state/paused_until")
 	if [ -f "$state/enrolled" ]; then
@@ -41,7 +52,7 @@ status)
 		node=null name=null gateway=null
 	fi
 	cat <<-J
-		{"version":"9.9.9","instance":null,"enrolled":$(flag enrolled),"node_id":$node,"name":$name,"gateway_url":$gateway,"connected":$(flag enrolled),"paused":$(flag paused),"paused_until":$until,"service_running":$(flag installed),"last_error":null}
+		{"version":"9.9.9","instance":null,"enrolled":$(flag enrolled),"node_id":$node,"name":$name,"gateway_url":$gateway,"connected":$(flag enrolled),"paused":$(flag paused),"paused_until":$until,"service_running":$(flag installed),"last_error":null,"enrollment":$enrollment}
 	J
 	;;
 enroll)
@@ -104,7 +115,9 @@ ceiling)
 		*) fail "ceiling: show or set" ;;
 	esac
 	;;
-install) touch "$state/installed"; echo "installed" ;;
+install)
+	[ "${2:-}" != --claim ] || touch "$state/claim"
+	touch "$state/installed"; echo "installed" ;;
 uninstall) rm -f "$state/installed"; echo "removed" ;;
 *) fail "unknown command: ${1:-}" ;;
 esac

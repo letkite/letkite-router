@@ -10,7 +10,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=letkite-agent
 PKG_VERSION:=$(shell sed -n 's/^AGENT_VERSION=//p' $(CURDIR)/files/release)
-PKG_RELEASE:=1
+PKG_RELEASE:=2
 
 PKG_MAINTAINER:=LetKite <contact@letkite.com>
 PKG_LICENSE:=MIT
@@ -25,6 +25,10 @@ define Package/letkite-agent
   URL:=https://letkite.com
   DEPENDS:=+ca-bundle +uclient-fetch
   PKGARCH:=all
+endef
+
+define Package/letkite-agent/conffiles
+/etc/config/letkite
 endef
 
 define Package/letkite-agent/description
@@ -50,26 +54,7 @@ Package/letkite-agent/preinst=$(LETKITE_PREINST)
 define Package/letkite-agent/postinst
 #!/bin/sh
 [ -n "$${IPKG_INSTROOT}" ] && exit 0
-agent=/opt/letkite-agent/letkite-agent
-# apk goes on after a failed pre-install script; opkg stops there
-if [ ! -x "$$agent" ]; then
-	echo "letkite-agent: $$agent is missing: downloading or checking it failed (see above)." >&2
-	echo "Remove this package (apk del letkite-agent, or opkg remove letkite-agent) and try again." >&2
-	exit 1
-fi
-[ -e /usr/bin/letkite-agent ] || ln -s "$$agent" /usr/bin/letkite-agent
-# the service is the agent's own (init script, sysupgrade keep list)
-if "$$agent" install; then
-	exit 0
-fi
-if [ ! -f /etc/letkite/agent.toml ]; then
-	echo "letkite-agent: not paired yet. Pair this router in LuCI (Services > LetKite), or over"
-	echo "SSH with the command from https://dashboard.letkite.com (Add device > Router);"
-	echo "the service is installed once it is paired."
-	exit 0
-fi
-echo "letkite-agent: 'letkite-agent install' failed" >&2
-exit 1
+exec /usr/share/letkite-agent/setup.sh
 endef
 
 define Package/letkite-agent/prerm
@@ -98,6 +83,11 @@ endef
 define Package/letkite-agent/install
 	$(INSTALL_DIR) $(1)/usr/share/letkite-agent
 	$(INSTALL_DATA) ./files/release $(1)/usr/share/letkite-agent/release
+	$(INSTALL_BIN) ./files/setup.sh $(1)/usr/share/letkite-agent/setup.sh
+	$(INSTALL_DIR) $(1)/etc/config $(1)/etc/profile.d $(1)/etc/uci-defaults
+	$(INSTALL_CONF) ./files/config $(1)/etc/config/letkite
+	$(INSTALL_DATA) ./files/profile.d/letkite.sh $(1)/etc/profile.d/letkite.sh
+	$(INSTALL_BIN) ./files/uci-defaults/90-letkite-claim $(1)/etc/uci-defaults/90-letkite-claim
 endef
 
 $(eval $(call BuildPackage,letkite-agent))

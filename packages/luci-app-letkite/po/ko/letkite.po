@@ -6,466 +6,324 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:260
 msgid "1 day"
 msgstr "1일"
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:259
 msgid "1 hour"
 msgstr "1시간"
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:258
 msgid "30 minutes"
 msgstr "30분"
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:270
 msgid "A duration is a number and m, h or d, e.g. 30m, 1h, 1d."
 msgstr "기간은 숫자와 m, h, d 중 하나로 입력합니다(예: 30m, 1h, 1d)."
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:131
-msgid "A name is 1 to 63 letters, digits, dots, dashes and underscores."
-msgstr "이름은 영문자, 숫자, 점, 하이픈, 밑줄로 된 1~63자입니다."
-
-#: htdocs/luci-static/resources/view/letkite/overview.js:231
 msgid "AI assistants cannot reach this router until it is resumed."
 msgstr "재개할 때까지 AI 어시스턴트가 이 라우터에 접근할 수 없습니다."
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:36
 msgid "AI assistants on your LetKite account could then be handed this device to work on unattended."
 msgstr "LetKite 계정의 AI 어시스턴트에게 이 장치를 넘겨 무인으로 작업하게 할 수 있게 됩니다."
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:37
 msgid "AI assistants on your LetKite account could then move files between this router and the account's other devices directly, not only through LetKite's servers."
 msgstr "LetKite 계정의 AI 어시스턴트가 LetKite 서버를 거치지 않고 이 라우터와 계정의 다른 장치 사이에서 파일을 직접 옮길 수 있게 됩니다."
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:25
 msgid "Access points"
 msgstr "액세스 포인트"
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:72
 msgid "Agent version"
 msgstr "에이전트 버전"
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:22
 msgid "Allow direct peer-to-peer transfers with the account's other devices."
 msgstr "계정의 다른 장치와 P2P 직접 전송을 허용합니다."
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:45
 msgid "Always hidden"
 msgstr "항상 숨김"
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:171
-msgid "Approve this router"
-msgstr "이 라우터 승인"
-
-#: htdocs/luci-static/resources/view/letkite/overview.js:187
-msgid "Approved; starting the service…"
-msgstr "승인되었습니다. 서비스를 시작하는 중…"
-
-#: htdocs/luci-static/resources/view/letkite/permissions.js:47
 msgid "Apps on screen"
 msgstr "화면의 앱"
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:88
 msgid "Cancel"
 msgstr "취소"
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:198
 msgid "Changes are written to %s, and the agent restarts to apply them."
 msgstr "변경 사항은 %s에 기록되며, 적용을 위해 에이전트가 다시 시작됩니다."
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:43
+msgid "Code expires in %d seconds."
+msgstr "코드가 %d초 후에 만료됩니다."
+
 msgid "Commands and terminals"
 msgstr "명령과 터미널"
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:65
 msgid "Connected"
 msgstr "연결됨"
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:76
 msgid "Connection"
 msgstr "연결"
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:26
 msgid "Crash reports"
 msgstr "충돌 보고서"
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:22
 msgid "Direct transfers"
 msgstr "직접 전송"
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:288
 msgid "Documentation"
 msgstr "문서"
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:24
+msgid "Enter it at %s → Add device → Enter the code"
+msgstr "%s → 기기 추가 → 코드 입력에서 이 코드를 입력하세요"
+
 msgid "Environment variables"
 msgstr "환경 변수"
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:51
 msgid "Exit node"
 msgstr "출구 노드"
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:44
 msgid "Files"
 msgstr "파일"
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:21
 msgid "Hand over"
 msgstr "넘겨주기"
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:166 htdocs/luci-static/resources/view/letkite/permissions.js:189
 msgid "How to edit the ceiling"
 msgstr "상한 파일 편집 방법"
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:23
 msgid "Install newer agent releases signed by LetKite."
 msgstr "LetKite가 서명한 새 에이전트 릴리스를 설치합니다."
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:27
 msgid "Join the account's mesh network, so that its other devices can reach this one as its rules allow."
 msgstr "계정의 메시 네트워크에 참여해, 규칙이 허용하는 범위에서 다른 기기가 이 기기에 접근할 수 있게 합니다."
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:49
 msgid "Keep awake"
 msgstr "절전 방지"
 
-#: htdocs/luci-static/resources/view/letkite/log.js:33
 msgid "Last %d lines"
 msgstr "최근 %d줄"
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:82
 msgid "Last error"
 msgstr "최근 오류"
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:21
 msgid "Let someone at this device hand it over to AI assistants and leave. Meant for desktops; a router has no use for it."
 msgstr "이 장치 앞에 있는 사람이 AI 어시스턴트에게 넘겨주고 자리를 비울 수 있게 합니다. 데스크톱용이며 라우터에서는 쓰지 않습니다."
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:282 root/usr/share/luci/menu.d/luci-app-letkite.json
 msgid "LetKite"
 msgstr "LetKite"
 
-#: htdocs/luci-static/resources/view/letkite/log.js:41 root/usr/share/luci/menu.d/luci-app-letkite.json
 msgid "Log"
 msgstr "로그"
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:27
 msgid "Mesh network"
 msgstr "메시 네트워크"
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:123
-msgid "Name"
-msgstr "이름"
-
-#: htdocs/luci-static/resources/view/letkite/overview.js:75
 msgid "No"
 msgstr "아니요"
 
-#: htdocs/luci-static/resources/view/letkite/log.js:22
 msgid "No log lines from the agent."
 msgstr "에이전트 로그가 없습니다."
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:80
 msgid "Node"
 msgstr "노드"
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:67
 msgid "Not connected"
 msgstr "연결 안 됨"
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:77
 msgid "Not running"
 msgstr "실행 안 됨"
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:83
 msgid "Only turn it on if you trust the people and assistants on that account."
 msgstr "그 계정의 사람과 어시스턴트를 신뢰할 때만 켜세요."
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:286
 msgid "Open the dashboard"
 msgstr "대시보드 열기"
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:172
-msgid "Open the link, sign in to LetKite and approve the code. You can scan the QR code with your phone."
-msgstr "링크를 열고 LetKite에 로그인한 뒤 코드를 승인하세요. 휴대폰으로 QR 코드를 스캔할 수도 있습니다."
-
-#: htdocs/luci-static/resources/view/letkite/permissions.js:202
 msgid "Other limits"
 msgstr "기타 상한"
 
-#: root/usr/share/luci/menu.d/luci-app-letkite.json
 msgid "Overview"
 msgstr "개요"
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:143
-msgid "Pair"
-msgstr "페어링"
-
-#: htdocs/luci-static/resources/view/letkite/overview.js:120
 msgid "Pair this router"
 msgstr "이 라우터 페어링"
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:73
 msgid "Paired"
 msgstr "페어링"
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:189
 msgid "Paired as %s."
 msgstr "%s(으)로 페어링되었습니다."
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:189
 msgid "Paired."
 msgstr "페어링되었습니다."
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:121
-msgid "Pairing connects this router to your LetKite account. You will get a code to approve after signing in."
-msgstr "페어링하면 이 라우터가 LetKite 계정에 연결됩니다. 로그인한 뒤 승인할 코드가 표시됩니다."
-
-#: htdocs/luci-static/resources/view/letkite/overview.js:136
-msgid "Pairing could not start."
-msgstr "페어링을 시작할 수 없습니다."
-
-#: htdocs/luci-static/resources/view/letkite/overview.js:199
 msgid "Pairing failed: %s"
 msgstr "페어링 실패: %s"
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:45
 msgid "Paths no one may read or write"
 msgstr "누구도 읽거나 쓸 수 없는 경로"
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:255
 msgid "Pause"
 msgstr "일시 중지"
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:50
 msgid "Pause at this device"
 msgstr "이 장치에서 일시 중지"
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:275
 msgid "Pause for"
 msgstr "지정 시간 동안 일시 중지"
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:230
 msgid "Paused"
 msgstr "일시 중지됨"
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:62
 msgid "Paused until %s"
 msgstr "%s까지 일시 중지됨"
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:63
 msgid "Paused until resumed"
 msgstr "재개할 때까지 일시 중지됨"
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:256
 msgid "Pausing disconnects the agent: AI assistants cannot reach this router or its network until the time is up or it is resumed."
 msgstr "일시 중지하면 에이전트 연결이 끊겨, 시간이 끝나거나 재개할 때까지 AI 어시스턴트가 이 라우터와 네트워크에 접근할 수 없습니다."
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:209 root/usr/share/luci/menu.d/luci-app-letkite.json
 msgid "Permissions"
 msgstr "권한"
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:25
 msgid "Reach LetKite's servers through its access points."
 msgstr "LetKite의 액세스 포인트를 통해 LetKite 서버에 연결합니다."
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:235
 msgid "Resume"
 msgstr "재개"
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:77
 msgid "Running"
 msgstr "실행 중"
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:120
 msgid "Saved, but the agent did not restart, so the change is not applied yet. Restart it under System > Startup, or with /etc/init.d/letkite-agent restart."
 msgstr "저장했지만 에이전트가 다시 시작되지 않아 변경 사항이 아직 적용되지 않았습니다. 시스템 > 시작 프로그램에서 다시 시작하거나 /etc/init.d/letkite-agent restart를 실행하세요."
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:125
 msgid "Saved. It applies when the agent next starts."
 msgstr "저장했습니다. 에이전트가 다음에 시작될 때 적용됩니다."
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:116
 msgid "Saved. The agent restarted to apply it."
 msgstr "저장했습니다. 에이전트가 다시 시작되어 적용되었습니다."
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:46
 msgid "Screen"
 msgstr "화면"
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:26
 msgid "Send the agent's crash reports to LetKite: version, system and where it failed; never commands, paths or output."
 msgstr "에이전트의 충돌 보고서를 LetKite에 보냅니다: 버전, 시스템, 실패한 위치만 포함하며 명령, 경로, 출력은 절대 포함하지 않습니다."
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:77
 msgid "Service"
 msgstr "서비스"
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:51
 msgid "Set only on LetKite's own servers"
 msgstr "LetKite 자체 서버에서만 설정됩니다"
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:109
 msgid "Starting…"
 msgstr "시작하는 중…"
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:291
 msgid "Status"
 msgstr "상태"
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:196
 msgid "Switches"
 msgstr "스위치"
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:24
 msgid "Take the environment variables set in the dashboard."
 msgstr "대시보드에서 설정한 환경 변수를 사용합니다."
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:57
 msgid "The LetKite agent is not installed. Reinstall the letkite-agent package."
 msgstr "LetKite 에이전트가 설치되어 있지 않습니다. letkite-agent 패키지를 다시 설치하세요."
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:284
 msgid "The LetKite agent lets AI assistants on your LetKite account reach this router and the devices behind it, within the permissions you set here."
 msgstr "LetKite 에이전트를 사용하면 LetKite 계정의 AI 어시스턴트가 여기서 설정한 권한 안에서 이 라우터와 그 뒤의 기기에 접근할 수 있습니다."
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:39
 msgid "The account's other devices, and the AI assistants using them, could then reach this router over the mesh network, as the account's rules allow."
 msgstr "계정의 다른 장치와 그 장치를 쓰는 AI 어시스턴트가 계정 규칙에 따라 메시 네트워크로 이 라우터에 접근할 수 있게 됩니다."
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:185
 msgid "The agent cannot read %s, and does not start until it is fixed: %s"
 msgstr "에이전트가 %s을(를) 읽을 수 없으며, 고칠 때까지 시작하지 않습니다: %s"
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:223 htdocs/luci-static/resources/view/letkite/permissions.js:113 htdocs/luci-static/resources/view/letkite/permissions.js:176
 msgid "The agent did not answer."
 msgstr "에이전트가 응답하지 않았습니다."
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:145
 msgid "The agent reported no switches."
 msgstr "에이전트가 보고한 스위치가 없습니다."
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:47
 msgid "The apps AI assistants may see and drive"
 msgstr "AI 어시스턴트가 보고 조작할 수 있는 앱"
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:181
-msgid "The code is valid for %d minutes."
-msgstr "코드는 %d분 동안 유효합니다."
-
-#: htdocs/luci-static/resources/view/letkite/permissions.js:38
 msgid "The environment variables set in the dashboard would then be written on this router, for the commands AI assistants run here."
 msgstr "대시보드에서 설정한 환경 변수가 AI 어시스턴트가 여기서 실행하는 명령을 위해 이 라우터에 기록됩니다."
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:211
 msgid "The most AI assistants may ever do on this router, whatever your LetKite account allows."
 msgstr "LetKite 계정에서 무엇을 허용하든, AI 어시스턴트가 이 라우터에서 할 수 있는 최대한도입니다."
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:44
 msgid "The most of the file system AI assistants may be granted"
 msgstr "AI 어시스턴트에게 허용할 수 있는 파일 시스템의 최대 범위"
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:164
 msgid "These are not on/off switches, so LuCI does not change them. Set them in /etc/letkite/ceiling.toml over SSH, then restart the agent."
 msgstr "이 항목들은 켜고 끄는 스위치가 아니므로 LuCI에서 바꾸지 않습니다. SSH로 /etc/letkite/ceiling.toml에서 설정한 뒤 에이전트를 다시 시작하세요."
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:180
 msgid "This agent version cannot change its permissions from LuCI yet; it will once it updates itself. Until then, edit /etc/letkite/ceiling.toml over SSH."
 msgstr "이 버전의 에이전트는 아직 LuCI에서 권한을 변경할 수 없으며, 자동 업데이트 후 가능해집니다. 그때까지는 SSH로 /etc/letkite/ceiling.toml을 편집하세요."
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:87
 msgid "This agent version does not report its full status to LuCI yet; it will once it updates itself."
 msgstr "이 버전의 에이전트는 아직 LuCI에 전체 상태를 보고하지 않으며, 자동 업데이트 후 보고합니다."
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:203
 msgid "Try again"
 msgstr "다시 시도"
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:48
 msgid "Tunnel targets"
 msgstr "터널 대상"
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:93
 msgid "Turn on"
 msgstr "켜기"
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:81
 msgid "Turn on %s?"
 msgstr "%s을(를) 켤까요?"
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:261
 msgid "Until resumed"
 msgstr "재개할 때까지"
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:23
 msgid "Updates"
 msgstr "업데이트"
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:182
 msgid "Waiting for approval…"
 msgstr "승인을 기다리는 중…"
 
-#: htdocs/luci-static/resources/view/letkite/log.js:42
 msgid "What the agent wrote to the system log (logread -e letkite)."
 msgstr "에이전트가 시스템 로그에 기록한 내용(logread -e letkite)."
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:48
 msgid "Where tunnels may connect"
 msgstr "터널이 연결할 수 있는 곳"
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:50
 msgid "Who may pause the connection here: users or admins"
 msgstr "여기서 연결을 일시 중지할 수 있는 사람: users 또는 admins"
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:74
 msgid "Yes"
 msgstr "예"
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:74
 msgid "Yes, as %s"
 msgstr "예, %s(으)로"
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:241
 msgid "e.g. 45m, 2h, 3d"
 msgstr "예: 45m, 2h, 3d"
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:63
 msgid "no"
 msgstr "아니요"
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:187
 msgid "no ceiling"
 msgstr "상한 파일 없음"
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:59
 msgid "no limit"
 msgstr "제한 없음"
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:57
 msgid "nothing"
 msgstr "없음"
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:46
 msgid "off, observe or act"
 msgstr "off, observe 또는 act"
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:49
 msgid "off, plugged_in or always"
 msgstr "off, plugged_in 또는 always"
 
-#: htdocs/luci-static/resources/view/letkite/permissions.js:43
 msgid "off, sandboxed or full"
 msgstr "off, sandboxed 또는 full"
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:115
-msgid "optional; the host name by default"
-msgstr "선택 사항, 기본값은 호스트 이름"
-
-#: htdocs/luci-static/resources/view/letkite/overview.js:199
-msgid "unknown error"
-msgstr "알 수 없는 오류"
-
-#: htdocs/luci-static/resources/view/letkite/permissions.js:63
 msgid "yes"
 msgstr "예"
+

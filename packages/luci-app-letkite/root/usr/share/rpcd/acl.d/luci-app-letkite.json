@@ -8,7 +8,7 @@
 		},
 		"write": {
 			"ubus": {
-				"letkite": [ "enroll_start", "pause", "resume", "ceiling_set" ]
+				"letkite": [ "claim_status", "enroll_start", "pause", "resume", "ceiling_set" ]
 			}
 		}
 	}

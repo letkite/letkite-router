@@ -81,9 +81,26 @@ To pair the router as part of the install, use the command shown in the [dashboa
 
 ## Pairing in LuCI
 
-1. Open **Services → LetKite → Overview** and click **Pair**. You can give the router a name.
-2. LuCI shows a code, a link and a QR code. Open the link (or scan the code with your phone), sign in to LetKite, and approve the code.
-3. Once you approve it, the router appears in your dashboard and the agent's service starts.
+1. Open **Services → LetKite → Overview**. An unclaimed router automatically shows a large code, a QR code and a countdown.
+2. At the dashboard, choose **Add device → Enter the code**, enter the displayed code, sign in and approve. The id `/device` link and QR code are alternatives.
+3. LuCI shows success with the node name. While the page stays open, expired codes are replaced automatically. Closing it stops browser polling and requests for new codes; the service can finish the current request until its code expires. A refusal requires **Try again**.
+
+This needs an agent with the Card A claim contract (newer than 1.9.1). The current pinned release is older; until a signed release includes it, provide a verified newer agent or upgrade it separately. LuCI reports this dependency instead of launching a legacy enrollment worker. The package pin must only be advanced with `scripts/release-table.py` after that release is published.
+
+### Preinstall in firmware: owner claims it
+
+Set `/etc/config/letkite` in the image (or with UCI before installing the package):
+
+```uci
+config letkite 'main'
+    option claim '1'
+```
+
+At runtime, package post-install and the first-boot `/etc/uci-defaults/90-letkite-claim` run the shared setup script. With `claim=1`, it runs `letkite-agent install --claim` when there is no identity or setup file. Existing `/etc/letkite/setup.toml` (custom gateway, CA, name, tags) and enrolled identities are preserved; plain `install` starts their service. An unsuccessful first-boot setup is retried on the next boot. The default is `claim=0`; opening LuCI can also initialize claim mode on an ordinary fresh installation.
+
+The package pre-install download is skipped in Image Builder/buildroot. **Include a verified agent with claim support at `files/opt/letkite-agent/letkite-agent` (executable)**, together with the packages and the UCI option; otherwise the first-boot script reports a missing binary and cannot start the service. Never include `node.key`, `agent.toml` or tokens. A production setup file may be empty. Keys are generated on the device; sysupgrade preserves the configuration and agent installation. SSH login displays a local-file-only reminder to run `letkite-agent claim` while unclaimed.
+
+See [device-integration.md §5 and §5.1](https://github.com/letkite/letkite/blob/dev/docs/device-integration.md#5-注册) for `setup.toml`, first-boot behavior and the exact CLI/JSON contract (`status --json --refresh`, `enrollment`, `install --claim`). LuCI uses the short status-with-refresh call through a write-authorized rpcd method; read-only `status` never requests codes.
 
 **Pause** disconnects the agent for 30 minutes, an hour, a day, a custom time, or until you resume it. **Permissions** shows the router's local ceiling (see [Permissions](#permissions)). **Log** shows the agent's lines from `logread`.
 
@@ -157,7 +174,7 @@ The table is regenerated only from a release whose `release.json` carries a vali
 
 Afterwards, the agent installs its own procd service (`letkite-agent install`). It then updates itself: it installs only releases signed with the same release keys, verifies their size and SHA-256, and rolls back an update that does not come up.
 
-**Why `apk audit` stays clean.** The package does not own `/opt/letkite-agent/letkite-agent`; the program file is not in the package. The agent replaces that file when it updates itself, and a file the package owned would then show up as modified. The package owns only the release table, `/usr/share/letkite-agent/release`. The init script and the sysupgrade keep list belong to the agent, which writes them on install and removes them on uninstall, so the package and the agent never disagree about the service.
+**Why `apk audit` stays clean.** The package does not own `/opt/letkite-agent/letkite-agent`; the program file is not in the package. The agent replaces that file when it updates itself, and a file the package owned would then show up as modified. The package owns the release table, setup helper, UCI configuration, first-boot script and SSH reminder. The init script and the sysupgrade keep list belong to the agent, which writes them on install and removes them on uninstall, so the package and the agent never disagree about the service.
 
 ## Security
 

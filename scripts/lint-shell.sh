@@ -11,6 +11,9 @@ trap 'rm -rf "$tmp"' EXIT
 
 files=(
   packages/luci-app-letkite/root/usr/libexec/rpcd/letkite
+  packages/letkite-agent/files/setup.sh
+  packages/letkite-agent/files/profile.d/*.sh
+  packages/letkite-agent/files/uci-defaults/*
   tests/fake-agent/letkite-agent
   tests/unit/*.sh
   tests/openwrt/*.sh

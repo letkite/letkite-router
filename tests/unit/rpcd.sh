@@ -60,10 +60,10 @@ valid() { [ "$(jsonfilter -s "$1" -t '@' 2>/dev/null)" = object ]; }
 echo "# list"
 out=$("$plugin" list)
 check "list is a JSON object" valid "$out"
-for m in status enroll_start enroll_poll pause resume ceiling_get ceiling_set log; do
+for m in status claim_status enroll_start enroll_poll pause resume ceiling_get ceiling_set log; do
 	check "list has $m" [ "$(jsonfilter -s "$out" -t "@.$m")" = object ]
 done
-check_eq "list has nothing else" 8 "$(jsonfilter -s "$out" -e '@.*' | wc -l | tr -d ' ')"
+check_eq "list has nothing else" 9 "$(jsonfilter -s "$out" -e '@.*' | wc -l | tr -d ' ')"
 
 echo "# status"
 out=$(call status)
@@ -74,7 +74,7 @@ check_eq "status: not enrolled" false "$(field "$out" '@.agent.enrolled')"
 check_eq "status: paused_until null passes through" "" "$(field "$out" '@.agent.paused_until')"
 check_eq "status: argv" "status|--json" "$(calls | tail -n 1)"
 check_eq "status: the contract's fields" \
-	"connected enrolled gateway_url instance last_error name node_id paused paused_until service_running version " \
+	"connected enrolled enrollment gateway_url instance last_error name node_id paused paused_until service_running version " \
 	"$(keys "$out" '@.agent')"
 check_eq "status: no name before enrolling" "" "$(field "$out" '@.agent.name')"
 
@@ -88,6 +88,34 @@ check_eq "fallback: enrolled from agent.toml" false "$(field "$out" '@.agent.enr
 echo "# status, no agent"
 out=$(LETKITE_AGENT=/nonexistent call status)
 check_eq "no agent: installed false" false "$(field "$out" '@.installed')"
+
+echo "# on-demand claim: no worker process, exact card A contract"
+reset_calls
+out=$(call claim_status)
+check_eq "claim: new install enters claim mode" 'install|--claim' "$(calls | head -n 1)"
+check_eq "claim: exact status command" 'status|--json|--refresh' "$(calls | tail -n 1)"
+check_eq "claim: code passes through" BDFK-QRTW "$(field "$out" '@.agent.enrollment.user_code')"
+check_eq "claim: absolute expiry passes through" 1790000600 "$(field "$out" '@.agent.enrollment.expires_at')"
+check_eq "claim: no background enrollment worker" false "$(field "$(call enroll_poll)" '@.running')"
+touch "$LETKITE_CONFIG_DIR/setup.toml"
+reset_calls
+out=$(call claim_status)
+check_eq "claim: existing setup not rewritten" 'status|--json|--refresh' "$(calls)"
+rm -f "$FAKE_AGENT_STATE/code"
+reset_calls
+out=$(call status)
+check_eq "read-only status never asks for a code" 'status|--json' "$(calls)"
+check_eq "read-only status: expired" unclaimed "$(field "$out" '@.agent.enrollment.state')"
+out=$(call claim_status)
+check_eq "refresh gets another code" waiting "$(field "$out" '@.agent.enrollment.state')"
+touch "$FAKE_AGENT_STATE/enrolled"
+out=$(call claim_status)
+check_eq "claim: success" enrolled "$(field "$out" '@.agent.enrollment.state')"
+check_eq "claim: node name" fake-router "$(field "$out" '@.agent.name')"
+rm -f "$FAKE_AGENT_STATE/claim" "$FAKE_AGENT_STATE/code" "$FAKE_AGENT_STATE/enrolled"
+out=$(call claim_status)
+check_eq "old agent reports unsupported claim" false "$(field "$out" '@.ok')"
+rm -f "$LETKITE_CONFIG_DIR/setup.toml"
 
 echo "# pause and resume"
 reset_calls

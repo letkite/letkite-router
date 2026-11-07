@@ -42,6 +42,10 @@ npm ci && npm run lint
 # translations cover every string (after changing a string: scripts/i18n.py pot)
 scripts/i18n.py check
 
+# claim lifecycle (automatic code, expiry, approval, closing the page)
+node --test tests/unit/overview.cjs
+tests/unit/setup.sh
+
 # the pre-install script (download, SHA-256, architectures) and the release table
 tests/unit/fetch.sh
 tests/unit/release-table.sh
