@@ -1,0 +1,5 @@
+#!/bin/sh
+# Brand marker only. Do not touch WAN/LAN, firewall, WLAN, ART, or user credentials.
+mkdir -p /etc/letkite-router-os
+printf '%s\n' 'prototype-0.1' > /etc/letkite-router-os/distribution
+exit 0
