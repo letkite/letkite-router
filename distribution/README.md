@@ -140,3 +140,5 @@ and install manually after flashing using the root README's official apk feed
 procedure. Authenticate the feed key through a trusted independent channel before
 trusting downloaded metadata; stop on signature errors. Do not use `curl|sh`, an
 arbitrary executable, or disable apk signature checking as a workaround.
+
+Optional Clash Meta / Mihomo binary integration: see [operator and trust policy](docs/mihomo.md). Default `ENABLE_MIHOMO=0`; no Mihomo/OpenClash APK is assumed available.
