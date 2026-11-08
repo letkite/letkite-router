@@ -1,5 +1,16 @@
 #!/bin/sh
-# Brand marker only. Do not touch WAN/LAN, firewall, WLAN, ART, or user credentials.
+# First-boot safety: brand only; never modify WLAN, WAN, LAN, firewall or ART.
 mkdir -p /etc/letkite-router-os
 printf '%s\n' 'prototype-0.1' > /etc/letkite-router-os/distribution
+# OpenWrt's sing-box package enables a procd service by default; keep it off
+# until the owner configures a VPN/proxy profile and explicitly enables it.
+if [ -x /etc/init.d/sing-box ]; then
+    /etc/init.d/sing-box disable
+    /etc/init.d/sing-box stop
+fi
+# A container runtime should not start without owner-managed persistent storage.
+if [ -x /etc/init.d/dockerd ]; then
+    /etc/init.d/dockerd disable
+    /etc/init.d/dockerd stop
+fi
 exit 0
