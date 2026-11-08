@@ -31,7 +31,7 @@ Local image SHA256SUMS files all verified successfully for completed variants.
 
 ## Limits and release gates
 
-- Letkite Agent **not embedded** yet, to avoid interfering with concurrently developed packages. Current upstream README mandates a verified signed agent executable in firmware for actual preinstallation; the OpenWrt package alone is not the agent.
+- Letkite Agent **not embedded**; the new explicit opt-in fails closed before ImageBuilder (see integration validation below). Current upstream README mandates a verified signed agent executable in firmware for actual preinstallation; the OpenWrt package alone is not the agent.
 - AX3000T only stock OpenWrt layout `xiaomi_mi-router-ax3000t`. RD03v2 and U-Boot mod excluded. Xiaomi BE6500 Pro RD08 excluded pending QSDK BSP / ART mapping / OEM trust enforcement.
 - No real AX3000T firmware flashed or tested; read-only OEM recovery research only.
 - Docker daemon **has been started and queried successfully** in a network-isolated QEMU guest; actual container launch and network forwarding are not yet qualified. Docker data-root must be on SSD, and firewall/NAT interactions still need testing.
@@ -64,3 +64,53 @@ PASS container ran
 Docker reported version 29.6.1 and `overlayfs`. The guest printed `LK_CONTAINER_OK` and `LK_CONTAINER_RC:0` from an actual containerized `/bin/busybox echo`. An earlier test image lacked `libgcc_s.so.1` and failed at dynamic linking; adding that library resolved the *test image* issue, not an OS/daemon bug. Serial logs on Compute-1: `/home/cp1/workspace/router-os-check/x86-qemu-ci-smoke.log`.
 
 **Still not tested:** real WAN/LAN bridging, DNS and IPv6 policy, Docker traffic isolation vs fw4, actual hardware, SSD data-root, or power-failure recovery. The QEMU test validates offline core container execution, not deployable router networking or security posture.
+
+## System integration gate validation — 2026-11-08
+
+This change is a partial integration with a deliberately blocked provider, not a
+successful agent-enabled firmware build. No device was touched, and no new
+ImageBuilder build was attempted. Historical base/proxy/x86 build results above
+were not rerun for this change.
+
+Executed in this workspace:
+
+| Check | Result |
+|---|---|
+| `bash -n distribution/scripts/build-image.sh distribution/tests/test-profiles.sh` | PASS |
+| `sh -n distribution/scripts/letkite-health.sh` | PASS |
+| `bash distribution/tests/test-profiles.sh` | PASS: existing variants, opt-in off equivalence, unsupported profiles, invalid toggle, blocked opt-in including non-dry/no network or make |
+| `python3 distribution/tests/test-agent.py` | PASS: 8 offline tests |
+| `bash tests/unit/setup.sh` | PASS: 21 |
+| `bash tests/unit/fetch.sh` | PASS: 58 |
+| `bash tests/unit/release-table.sh` | PASS: 35 |
+| `python3 scripts/release-table.py check` with release environment overrides unset | PASS: official 1.6.1 table matches signed release |
+| `git diff --check` | PASS |
+| `node --test tests/unit/overview.cjs` | NOT RUN: `node: command not found` |
+
+The new fixture generates an ephemeral Ed25519 key under a temporary directory,
+signs synthetic release metadata, and validates x86_64/aarch64 artifacts without
+executing them or using the network. It rejects wrong hash/architecture,
+missing binary, non-0755 permissions, old claim version, invalid signature and
+missing metadata. It verifies preflight leaves inputs unchanged and returns no
+fixture program contents. No fixture is installed into an image. Profile tests
+confirm no agent/device configuration in the default overlay and refusal before
+any provider access; because no output is generated, no device credentials can
+be baked by this path. These tests do **not** prove an enabled-image happy path.
+
+Authentication evidence: existing release-table verification authenticated the
+pinned 1.6.1 release using the repository agent release keys. HTTP HEAD requests
+to the official 25.12 `packages.adb` and `letkite-apk.pem` endpoints both returned
+200. **No apk metadata signature, package payload, or claim-capable version was
+authenticated for image integration.** Endpoint availability is not a trust
+claim. No feed key was committed based solely on that download.
+
+Remaining gates: independently authenticate and pin the official apk feed key;
+qualify signed metadata/package installation in ImageBuilder; compare installed
+package release table to the signed executable; advance the package pin through
+the separate authorized release workflow; prove the newer claim CLI contract in
+an isolated VM. Then test early claim ordering, restrictive ceiling, service
+restart/rollback, keep-list backup/restore, unclaim and factory reset. The health
+helper has syntax validation only; router execution remains untested. ShellCheck
+is unavailable locally. Existing CI retains package/lifecycle tests and now runs
+the distribution offline preflight as well. No production safety or merge
+readiness is asserted.
