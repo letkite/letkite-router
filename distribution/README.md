@@ -36,7 +36,7 @@ AX3000T RD03/RD23 only. **RD03v2 is not compatible.** The profile is for OpenWrt
 
 ## Docker
 
-Docker is disabled for AX3000T: limited RAM/NAND and no external disk. The x86-full profile carries `dockerd`, `docker` and related container networking packages; for production use place Docker data-root on persistent SSD, disable remote TCP socket, limit memory and log size, and verify image kernel features on QEMU hardware before enabling services.
+Docker is disabled for AX3000T: limited RAM/NAND and no external disk. The x86-full profile carries `dockerd`, `docker` and related container networking packages; for production use place Docker data-root on persistent SSD; the x86 image build reserves a 512 MiB root partition because the default 104 MiB ext4 partition was too small, disable remote TCP socket, limit memory and log size, and verify image kernel features on QEMU hardware before enabling services.
 
 ## VPN / proxy
 
