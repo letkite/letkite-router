@@ -27,6 +27,13 @@ elif [[ "$DOCKER_SUPPORTED" == 0 && "${ENABLE_DOCKER:-0}" == 1 ]]; then
   die "Docker is disabled on this constrained Xiaomi profile"
 fi
 if [[ ${ENABLE_PROXY:-0} == 1 ]]; then packages="$packages sing-box"; fi
+# No provider has yet been qualified to install authenticated LetKite apk
+# metadata into this ImageBuilder. Never let a dry run imply approval either.
+case "${ENABLE_LETKITE:-0}" in
+  0) ;;
+  1) die "LetKite opt-in blocked: authenticated apk provider not qualified; pinned agent requires manual pairing (no unattended claim). See distribution/README.md" ;;
+  *) die "ENABLE_LETKITE must be 0 or 1" ;;
+esac
 site="https://downloads.openwrt.org/releases/$version/targets/$TARGET/$SUBTARGET"
 flavor="base"
 if [[ ${ENABLE_PROXY:-0} == 1 ]]; then flavor="proxy"; fi
