@@ -1,0 +1,21 @@
+#!/bin/sh /etc/rc.common
+USE_PROCD=1
+START=99
+STOP=10
+start_service() {
+    config_load mihomo
+    local enabled
+    config_get_bool enabled main enabled 0
+    [ "$enabled" = 1 ] || return 0
+    # Fixed root-owned config location; never download profiles or geo databases here.
+    [ -f /etc/mihomo/config.yaml ] && [ ! -L /etc/mihomo/config.yaml ] || return 1
+    [ "$(stat -c '%u:%a' /etc/mihomo/config.yaml)" = '0:600' ] || return 1
+    mkdir -p /tmp/mihomo
+    chmod 700 /tmp/mihomo
+    procd_open_instance
+    procd_set_param command /opt/letkite-router/mihomo/mihomo -d /tmp/mihomo -f /etc/mihomo/config.yaml
+    procd_set_param limits core=0 nofile='4096 4096'
+    procd_set_param stdout 1
+    procd_set_param stderr 1
+    procd_close_instance
+}
