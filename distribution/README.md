@@ -8,7 +8,7 @@
 - Feature profiles: Lite (LuCI, WireGuard; optional sing-box), x86 Full (same plus optional Docker runtime).
 - No default transparent proxy / TProxy / firewall rewrites. Users configure their own compliant VPN or proxy service explicitly after installation.
 - No credentials, node keys, enrollment identities or OEM proprietary binaries in images.
-- This prototype **does not embed Letkite Agent**. After verifying hardware and flashing an officially supported OpenWrt device, install the agent from the signed package feed using the repository's top-level README. This separation prevents conflicts with the ongoing agent development; future agent preinstallation must provide a verified architecture-matched executable, use `claim=1`, and pass all existing setup tests.
+- Agent preinstallation is explicitly gated by `ENABLE_LETKITE=1`, disabled by default, and currently **blocked**. The existing packages remain untouched. See the integration gate below.
 - All image building is **offline with respect to devices**. It never runs sysupgrade, mtd, ubiformat, or modifies a router.
 
 ## Build
@@ -49,3 +49,94 @@ distribution/tests/test-profiles.sh
 ```
 
 No production signing key is included. Before a production release add image signature + manifest, hardware compatibility gating, recovery/rollback tests, and reproducible source/feeds locks.
+
+## LetKite integration gate
+
+```sh
+# Existing base/proxy/x86 builds are unchanged; no LetKite package or overlay.
+ENABLE_LETKITE=0 distribution/scripts/build-image.sh --profile ax3000t --dry-run
+# Intentionally exits nonzero, including in dry-run; no downloads or image writes.
+ENABLE_LETKITE=1 distribution/scripts/build-image.sh --profile x86-full --dry-run
+python3 distribution/tests/test-agent.py
+```
+
+The official base remains OpenWrt 25.12.6 (apk). The repository currently pins
+agent **1.6.1**: legacy manual enrollment, not the automatic Card A claim contract
+(newer than 1.9.1). We do not advance that pin, patch the packages, or infer claim
+compatibility from the presence of the `install` command. Neither manual nor
+unattended agent embedding is enabled by this implementation.
+
+On 2026-11-08 the official `packages.adb` and apk public key endpoints returned
+HTTP 200. Reachability is not package authentication. No independently pinned
+feed key and qualified ImageBuilder apk installation path have been established
+here. The gate always refuses opt-in, even if callers supply environment
+variables naming a feed or a key. There is no unsigned/local-package escape hatch.
+
+`verify-agent.py BUNDLE x86_64|aarch64` is an **offline preflight**, not an image
+builder or an installer. A bundle contains `release.json`, `release.json.sig`,
+`SHA256SUMS`, and the architecture-specific program, mode exactly 0755. It uses
+the existing release-table verifier with repository release keys and the exact
+repository table; environment overrides of release trust are ignored. It checks
+signature, product, version, architecture-specific size and SHA-256, and refuses
+versions <=1.9.1. It never executes the supplied program, copies arbitrary bundle
+contents, or writes an overlay. Its JSON explicitly says package authentication
+and image authorization are false. Example after a separately reviewed compatible
+package pin exists:
+
+```sh
+python3 distribution/scripts/verify-agent.py /path/to/official-release-bundle aarch64
+```
+
+A successful artifact preflight alone cannot establish the CLI claim contract:
+require a real signed-version integration test as well. The missing provider must
+verify signed apk metadata and package hashes for **both** existing packages,
+ensure their embedded release table agrees with the checked program, retain apk
+signature verification in ImageBuilder, and fail on absent feed/metadata/packages.
+Only then may it produce a clean generated FILES overlay containing
+`/opt/letkite-agent/letkite-agent` (0755). Do not copy caller-provided configuration
+or directories into FILES. Require >=256 MiB RAM and free writable storage for two
+program copies (about 16 MiB for the current release; measure future releases).
+
+### Runtime contract and release gates
+
+For a future qualified provider, an image-only UCI default must sort **before**
+`90-letkite-claim` (for example `80-letkite-os-claim`) and set `letkite.main.claim=1`
+only for the proven compatible version. `95-letkite-os` is too late. The existing
+package firstboot/setup helper owns initialization: preserve existing setup and
+identity, retry unsuccessful firstboot on a later boot, and let the agent create
+its procd service. Do not add a second service, watchdog, updater or claim loop.
+Health supervision, restart policy and signed-update rollback belong to the
+existing agent; verify their actual behavior in a lab before qualifying images.
+For 1.6.1, use manual pairing after secure installation with `claim=0`.
+
+The distribution must not widen the local ceiling. Before enabling remote use,
+root must verify the existing agent's ceiling: shell off, files empty, GUI off,
+handover/direct/env/mesh disabled, and tunnel targets limited to explicitly
+approved local destinations (empty until approved). Do not write a guessed TOML
+schema or replace a retained ceiling. No WAN ports, guest firewall overrides,
+transparent proxy rules, LAN/WLAN changes or automatic Docker startup are added.
+
+Run `sh distribution/scripts/letkite-health.sh` locally on the router after manual
+installation for version, agent-owned service running state and ceiling presence.
+This helper stays outside the default firmware overlay. It does not request claim
+codes, expose identities, or prove connectivity/policy correctness.
+
+Verify the agent-created `/lib/upgrade/keep.d/letkite-agent` retains **both**
+`/etc/letkite/` and `/opt/letkite-agent/` with `sysupgrade -l` before upgrading;
+if either is absent, stop and resolve it before any upgrade. Validate backup and
+restore in an isolated VM, including permissions and power-loss behavior. These
+paths contain device secrets at runtime: never commit them or distribute backups.
+Do not layer an independent keep-list over the agent's uninstall lifecycle.
+
+Unclaim is an owner action in LuCI/the dashboard; never silently clear identities
+on boot or sysupgrade. Package removal invokes the existing agent uninstall and
+removes its service/keep-list and `/opt/letkite-agent`; `/etc/letkite` is retained.
+To permanently forget a device, remove it from the dashboard and explicitly delete
+`/etc/letkite` after stopping/uninstalling the agent. A reset/reflash may restore
+a firmware-embedded program; it must still generate a fresh identity locally.
+
+Until the provider and claim gates are qualified, build with the default toggle
+and install manually after flashing using the root README's official apk feed
+procedure. Authenticate the feed key through a trusted independent channel before
+trusting downloaded metadata; stop on signature errors. Do not use `curl|sh`, an
+arbitrary executable, or disable apk signature checking as a workaround.
