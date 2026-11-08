@@ -60,6 +60,8 @@ jobs:
           persist-credentials: false
       - name: Router OS profiles and offline smoke syntax
         run: |
+          python3 distribution/tests/test-agent.py
+          sh -n distribution/scripts/letkite-health.sh
           bash distribution/tests/test-profiles.sh
           bash -n distribution/scripts/build-image.sh
           sh -n distribution/files/etc/uci-defaults/95-letkite-os
