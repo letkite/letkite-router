@@ -27,14 +27,14 @@ Local image SHA256SUMS files all verified successfully for completed variants.
 - Rebuilt with `ROOTFS_PARTSIZE=512` (512 MiB), success (exit=0).
 - All four combined BIOS/UEFI, ext4/SquashFS `.img.gz` output SHA256SUMS verified.
 - Explicitly located `/usr/bin/dockerd`, `/usr/bin/docker`, `/usr/bin/wg`, `/etc/init.d/dockerd`, LuCI Dockerman menu/JS files, and safe-firstboot script in build root.
-- qemu-system-x86_64 TCG BIOS smoke uses no network interface and a snapshot writable virtual disk; observed Linux 6.12.112, ext4 root mount, `/sbin/init`, procd initialization, console login prompt, and WireGuard kernel driver loaded. Not a container functionality test.
+- qemu-system-x86_64 TCG BIOS smoke uses no network interface and a snapshot writable virtual disk; observed Linux 6.12.112, ext4 root mount, `/sbin/init`, procd initialization, console login prompt, and WireGuard kernel driver loaded. After an early-command race was corrected, a later QEMU guest session verified that `/etc/uci-defaults/95-letkite-os` had executed, Docker autostart was disabled (`/etc/init.d/dockerd enabled` returned 1), and Docker was not active by default. A deliberate `/etc/init.d/dockerd start`, followed by 18 seconds, returned Docker Engine 29.6.1 with `overlayfs` through `docker info`; `docker network ls` listed bridge/host/none and exited successfully. This was in an isolated VM with no guest network interface. The initial probe sent commands too early (before uci-defaults) and incorrectly observed Docker API unavailable; that initial failure was a startup timing artifact. Running a real container is still a separate test.
 
 ## Limits and release gates
 
 - Letkite Agent **not embedded** yet, to avoid interfering with concurrently developed packages. Current upstream README mandates a verified signed agent executable in firmware for actual preinstallation; the OpenWrt package alone is not the agent.
 - AX3000T only stock OpenWrt layout `xiaomi_mi-router-ax3000t`. RD03v2 and U-Boot mod excluded. Xiaomi BE6500 Pro RD08 excluded pending QSDK BSP / ART mapping / OEM trust enforcement.
 - No real AX3000T firmware flashed or tested; read-only OEM recovery research only.
-- Docker daemon and containers not yet launched/tested in a guest network; Docker data-root must be on SSD and firewall/NAT interactions tested.
+- Docker daemon **has been started and queried successfully** in a network-isolated QEMU guest; actual container launch and network forwarding are not yet qualified. Docker data-root must be on SSD, and firewall/NAT interactions still need testing.
 - sing-box packaged but no proxy profiles or nftables TProxy setup; test DNS/IPv6/routing/kill-switch in isolated lab before enabling.
 - Need real boot on target devices, config persistence, WAN/LAN/wifi functionality, updates, factory reset, power interruption, recovery and signed distribution releases.
 - Build image artifacts live under Compute-1 `/home/cp1/workspace/router-os-check/letkite-router/distribution/out/` and are deliberately git-ignored, not pushed into source history.
