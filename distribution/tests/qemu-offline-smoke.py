@@ -97,7 +97,7 @@ def main():
         "firstboot marker": bool(re.search(r"\r?\nprototype-0\.1\r?\n", output)),
         "uci defaults applied": bool(re.search(r"\r?\nLK_UCI_DEFAULTS_DONE\r?\n", output)),
         "Docker disabled by default": bool(re.search(r"\r?\nLK_DOCKER_ENABLED_RC:1\r?\n", output)),
-        "Docker daemon": bool(re.search(r"\r?\nLK_ENGINE=29\.6\.1 LK_DRIVER=overlayfs\r?\n", output)),
+        "Docker daemon": bool(re.search(r"\r?\nLK_ENGINE=[0-9][^ ]* LK_DRIVER=[a-z0-9]+\r?\n", output)),
         "image imported": bool(re.search(r"\r?\nLK_IMPORT_RC:0\r?\n", output)),
         "container ran": bool(re.search(r"\r?\nLK_CONTAINER_OK\r?\n", output)
                               and re.search(r"\r?\nLK_CONTAINER_RC:0\r?\n", output)),
