@@ -48,7 +48,7 @@ ib="$cache/${name%.tar.zst}"
 [[ -d $ib ]] || tar --zstd -xf "$archive" -C "$cache"
 [[ -f $ib/Makefile ]] || die "ImageBuilder not extracted"
 # Keep files overlay deliberately minimal; never ship private data in it.
-make -C "$ib" image PROFILE="$PROFILE" PACKAGES="$packages" FILES="$root/distribution/files"
+make -C "$ib" image PROFILE="$PROFILE" PACKAGES="$packages" FILES="$root/distribution/files" ${ROOTFS_MB:+ROOTFS_PARTSIZE="$ROOTFS_MB"}
 find "$ib/bin/targets/$TARGET/$SUBTARGET" -maxdepth 1 -type f \( -name '*sysupgrade*' -o -name '*combined*' -o -name '*initramfs*' \) -exec cp -v {} "$out/" \;
 (cd "$out" && find . -maxdepth 1 -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 -r sha256sum > SHA256SUMS) || die "checksum generation failed"
 [[ -s "$out/SHA256SUMS" ]] || die "no output images"
