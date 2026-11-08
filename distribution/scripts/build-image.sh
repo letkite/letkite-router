@@ -28,7 +28,9 @@ elif [[ "$DOCKER_SUPPORTED" == 0 && "${ENABLE_DOCKER:-0}" == 1 ]]; then
 fi
 if [[ ${ENABLE_PROXY:-0} == 1 ]]; then packages="$packages sing-box"; fi
 site="https://downloads.openwrt.org/releases/$version/targets/$TARGET/$SUBTARGET"
-out="$root/distribution/out/$profile"
+flavor="base"
+if [[ ${ENABLE_PROXY:-0} == 1 ]]; then flavor="proxy"; fi
+out="$root/distribution/out/$profile-$flavor"
 echo "OpenWrt=$version hardware=$profile target=$TARGET/$SUBTARGET profile=$PROFILE"
 echo "Packages=$packages"
 echo "Site=$site"
@@ -48,5 +50,6 @@ ib="$cache/${name%.tar.zst}"
 # Keep files overlay deliberately minimal; never ship private data in it.
 make -C "$ib" image PROFILE="$PROFILE" PACKAGES="$packages" FILES="$root/distribution/files"
 find "$ib/bin/targets/$TARGET/$SUBTARGET" -maxdepth 1 -type f \( -name '*sysupgrade*' -o -name '*combined*' -o -name '*initramfs*' \) -exec cp -v {} "$out/" \;
-(cd "$out" && sha256sum ./* > SHA256SUMS) || die "no output images"
+(cd "$out" && find . -maxdepth 1 -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 -r sha256sum > SHA256SUMS) || die "checksum generation failed"
+[[ -s "$out/SHA256SUMS" ]] || die "no output images"
 echo "Build output: $out"
