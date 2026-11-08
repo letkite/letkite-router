@@ -1,0 +1,7 @@
+#!/bin/sh
+/etc/init.d/mihomo disable
+/etc/init.d/mihomo stop
+mkdir -p /etc/mihomo
+chmod 700 /etc/mihomo
+chmod 600 /etc/config/mihomo
+exit 0
