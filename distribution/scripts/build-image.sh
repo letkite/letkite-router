@@ -34,15 +34,36 @@ case "${ENABLE_LETKITE:-0}" in
   1) die "LetKite opt-in blocked: authenticated apk provider not qualified; pinned agent requires manual pairing (no unattended claim). See distribution/README.md" ;;
   *) die "ENABLE_LETKITE must be 0 or 1" ;;
 esac
+case "${ENABLE_MIHOMO:-0}" in
+  0) ;;
+  1)
+    command -v python3 >/dev/null || die "Mihomo requires Python 3.11+"
+    python3 "$root/distribution/scripts/stage-mihomo.py" --target "$profile"
+    if [[ $profile == ax3000t ]]; then
+      [[ ${MIHOMO_STORAGE_BUDGET_MB:-0} =~ ^[0-9]{1,5}$ ]] || die "invalid Mihomo storage budget"
+      (( ${MIHOMO_STORAGE_BUDGET_MB:-0} >= 80 )) || die "AX3000T Mihomo needs MIHOMO_STORAGE_BUDGET_MB >= 80; see docs/mihomo.md"
+    fi ;;
+  *) die "ENABLE_MIHOMO must be 0 or 1" ;;
+esac
 site="https://downloads.openwrt.org/releases/$version/targets/$TARGET/$SUBTARGET"
 flavor="base"
 if [[ ${ENABLE_PROXY:-0} == 1 ]]; then flavor="proxy"; fi
+if [[ ${ENABLE_MIHOMO:-0} == 1 ]]; then flavor="$flavor-mihomo"; fi
 out="$root/distribution/out/$profile-$flavor"
 echo "OpenWrt=$version hardware=$profile target=$TARGET/$SUBTARGET profile=$PROFILE"
 echo "Packages=$packages"
 echo "Site=$site"
+if [[ ${ENABLE_MIHOMO:-0} == 1 ]]; then echo "Output=$out"; fi
 if ((dry)); then exit 0; fi
 for tool in curl sha256sum tar make zstd awk grep; do command -v "$tool" >/dev/null || die "missing $tool"; done
+files="$root/distribution/files"
+overlay=""
+trap '[[ -z "$overlay" ]] || rm -rf -- "$overlay"' EXIT
+if [[ ${ENABLE_MIHOMO:-0} == 1 ]]; then
+  overlay=$(mktemp -d)
+  python3 "$root/distribution/scripts/stage-mihomo.py" --target "$profile" --overlay "$overlay" --storage-budget-mb "${MIHOMO_STORAGE_BUDGET_MB:-0}"
+  files="$overlay"
+fi
 mkdir -p "$out" "$cache"
 curl -fsSL --retry 3 "$site/sha256sums" -o "$cache/sha256sums-$version-$TARGET-$SUBTARGET"
 sums="$cache/sha256sums-$version-$TARGET-$SUBTARGET"
@@ -55,7 +76,7 @@ ib="$cache/${name%.tar.zst}"
 [[ -d $ib ]] || tar --zstd -xf "$archive" -C "$cache"
 [[ -f $ib/Makefile ]] || die "ImageBuilder not extracted"
 # Keep files overlay deliberately minimal; never ship private data in it.
-make -C "$ib" image PROFILE="$PROFILE" PACKAGES="$packages" FILES="$root/distribution/files" ${ROOTFS_MB:+ROOTFS_PARTSIZE="$ROOTFS_MB"}
+make -C "$ib" image PROFILE="$PROFILE" PACKAGES="$packages" FILES="$files" ${ROOTFS_MB:+ROOTFS_PARTSIZE="$ROOTFS_MB"}
 find "$ib/bin/targets/$TARGET/$SUBTARGET" -maxdepth 1 -type f \( -name '*sysupgrade*' -o -name '*combined*' -o -name '*initramfs*' \) -exec cp -v {} "$out/" \;
 (cd "$out" && find . -maxdepth 1 -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 -r sha256sum > SHA256SUMS) || die "checksum generation failed"
 [[ -s "$out/SHA256SUMS" ]] || die "no output images"
