@@ -1,0 +1,23 @@
+{
+  "provider": "github-MetaCubeX-mihomo",
+  "version": "v1.19.33",
+  "published_at": "2026-10-21T16:56:13Z",
+  "targets": {
+    "x86-full": {
+      "asset": "mihomo-linux-amd64-v1-v1.19.33.gz",
+      "sha256": "8ec92e7b2fdc6b853ba00156bab7e4e965c8b0d843b8c4ac8ab98795f02ad524",
+      "compressed_bytes": 22893964,
+      "elf_machine": 62,
+      "elf_class": 2,
+      "max_installed_bytes": 104857600
+    },
+    "ax3000t": {
+      "asset": "mihomo-linux-arm64-v1.19.33.gz",
+      "sha256": "ba408b317080ee265c46cb923a50018c1b82cbd708551cdd46a1e3e307396187",
+      "compressed_bytes": 20824326,
+      "elf_machine": 183,
+      "elf_class": 2,
+      "max_installed_bytes": 104857600
+    }
+  }
+}
