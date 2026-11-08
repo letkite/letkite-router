@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "inventory_only": true,
+  "default_classification": "research-only",
+  "protected_partitions": ["ART", "WIFIFW", "bootloader", "calibration", "factory", "identity"],
+  "tiers": {
+    "full-firmware-imagebuilder": {"requires": ["verified upstream release and checksums", "exact board revision and target", "verified partition layout", "recovery validation", "image qualification"], "enabled": false},
+    "vendor-bsp-source-build": {"requires": ["verified OEM BSP and feeds", "component redistribution rights", "matching kernel modules and radio firmware", "exact board/version/layout and recovery validation"], "enabled": false},
+    "agent-only": {"meaning": "package or overlay candidate; no firmware replacement", "requires_before_install": ["signed release-matched package", "pinned binary hash", "CPU and executable ABI check", "RAM and free space check"]},
+    "research-only": {"meaning": "unsafe or unsupported pending manual review; no installation authorization"}
+  }
+}
