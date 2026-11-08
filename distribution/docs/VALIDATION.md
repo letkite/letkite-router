@@ -38,3 +38,29 @@ Local image SHA256SUMS files all verified successfully for completed variants.
 - sing-box packaged but no proxy profiles or nftables TProxy setup; test DNS/IPv6/routing/kill-switch in isolated lab before enabling.
 - Need real boot on target devices, config persistence, WAN/LAN/wifi functionality, updates, factory reset, power interruption, recovery and signed distribution releases.
 - Build image artifacts live under Compute-1 `/home/cp1/workspace/router-os-check/letkite-router/distribution/out/` and are deliberately git-ignored, not pushed into source history.
+
+## Repeatable isolated Docker container smoke
+
+A standalone stdlib test is now tracked in `distribution/tests/qemu-offline-smoke.py`. The test operates on a decompressed x86 ext4 BIOS combined image, with QEMU TCG, snapshot-only disk writes, and `-net none`. It waits until the system is initialized, verifies the brand marker and executed `uci-defaults`, confirms Docker is **disabled by default**, manually starts Docker, builds an offline tiny root filesystem from the guest BusyBox + musl/libgcc, imports it as an image, and executes a container with `--network none`.
+
+Example:
+
+```bash
+gzip -dc distribution/out/x86-full-base/openwrt-25.12.6-x86-64-generic-ext4-combined.img.gz > /tmp/letkite-x86.img
+python3 distribution/tests/qemu-offline-smoke.py /tmp/letkite-x86.img --log /tmp/letkite-x86-boot.log
+```
+
+Observed on Compute-1 (2026-11-08): exit code **0**, all six checks **PASS**:
+
+```text
+PASS firstboot marker
+PASS uci defaults applied
+PASS Docker disabled by default
+PASS Docker daemon
+PASS image imported
+PASS container ran
+```
+
+Docker reported version 29.6.1 and `overlayfs`. The guest printed `LK_CONTAINER_OK` and `LK_CONTAINER_RC:0` from an actual containerized `/bin/busybox echo`. An earlier test image lacked `libgcc_s.so.1` and failed at dynamic linking; adding that library resolved the *test image* issue, not an OS/daemon bug. Serial logs on Compute-1: `/home/cp1/workspace/router-os-check/x86-qemu-ci-smoke.log`.
+
+**Still not tested:** real WAN/LAN bridging, DNS and IPv6 policy, Docker traffic isolation vs fw4, actual hardware, SSD data-root, or power-failure recovery. The QEMU test validates offline core container execution, not deployable router networking or security posture.
