@@ -61,6 +61,10 @@ jobs:
       - name: Router OS profiles and offline smoke syntax
         run: |
           python3 distribution/tests/test-agent.py
+          python3 -B distribution/tests/test-mihomo.py
+          python3 -B distribution/tests/test-platform-adapters.py
+          sh -n distribution/addons/mihomo/files/etc/init.d/mihomo
+          sh -n distribution/addons/mihomo/files/etc/uci-defaults/96-letkite-mihomo
           sh -n distribution/scripts/letkite-health.sh
           bash distribution/tests/test-profiles.sh
           bash -n distribution/scripts/build-image.sh
