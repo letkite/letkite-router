@@ -63,6 +63,8 @@ jobs:
           python3 distribution/tests/test-agent.py
           python3 -B distribution/tests/test-mihomo.py
           python3 -B distribution/tests/test-platform-adapters.py
+          python3 -B distribution/tests/test-rd08-installer.py
+          sh -n distribution/installers/rd08/router.sh
           sh -n distribution/addons/mihomo/files/etc/init.d/mihomo
           sh -n distribution/addons/mihomo/files/etc/uci-defaults/96-letkite-mihomo
           sh -n distribution/scripts/letkite-health.sh
