@@ -32,7 +32,7 @@ AX3000T RD03/RD23 only. **RD03v2 is not compatible.** The profile is for OpenWrt
 
 ## BE6500 Pro RD08
 
-**Research-only; deliberately no build profile.** Xiaomi stock uses Qualcomm IPQ5332, kernel 5.4.213 and proprietary QCA WLAN/NSS/PPE, with device-specific ART calibration. OpenWrt ImageBuilder images are not a safe replacement. See `docs/rd08-vendor-boundary.md`.
+**No flashable RD08 firmware profile.** Xiaomi stock uses Qualcomm IPQ5332, kernel 5.4.213 and proprietary QCA WLAN/NSS/PPE, with device-specific ART calibration. OpenWrt ImageBuilder images are not a safe replacement. We provide a separate **offline OEM application staging installer**, which checks RD08 fingerprints and stages independently verified ARM64 files to `/data` without SSH unlocking, firmware writes, service activation or automatic pairing. See [`docs/RD08_INSTALLER.md`](docs/RD08_INSTALLER.md), [`installers/rd08/rd08.py`](installers/rd08/rd08.py) and `docs/rd08-vendor-boundary.md`. This installer is untested on physical RD08 hardware and must not be treated as a firmware migration tool.
 
 ## Docker
 
