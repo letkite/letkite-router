@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "devices": [
+    {"id":"x86-appliance", "board_names":["generic,x86-64"], "target":"x86/64", "build_profile":"generic", "verification":"unverified-device-layout"},
+    {"id":"ax3000t-stock-candidate", "board_names":["xiaomi,mi-router-ax3000t"], "target":"mediatek/filogic", "build_profile":"xiaomi_mi-router-ax3000t", "verification":"requires-RD03-or-RD23-stock-layout-excludes-RD03v2"},
+    {"id":"rd08", "board_names":["xiaomi,rd08","RD08"], "soc_pattern":"ipq5332", "release_prefix":"18.06", "kernel":"5.4.213", "adapter":"qsdk", "verification":"OEM-properties-are-observations-not-flash-qualification"}
+  ]
+}

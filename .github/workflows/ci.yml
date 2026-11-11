@@ -58,6 +58,20 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - name: Router OS profiles and offline smoke syntax
+        run: |
+          python3 distribution/tests/test-agent.py
+          python3 -B distribution/tests/test-mihomo.py
+          python3 -B distribution/tests/test-platform-adapters.py
+          python3 -B distribution/tests/test-rd08-installer.py
+          sh -n distribution/installers/rd08/router.sh
+          sh -n distribution/addons/mihomo/files/etc/init.d/mihomo
+          sh -n distribution/addons/mihomo/files/etc/uci-defaults/96-letkite-mihomo
+          sh -n distribution/scripts/letkite-health.sh
+          bash distribution/tests/test-profiles.sh
+          bash -n distribution/scripts/build-image.sh
+          sh -n distribution/files/etc/uci-defaults/95-letkite-os
+          python3 -m py_compile distribution/tests/qemu-offline-smoke.py
       - name: LuCI claim lifecycle
         run: node --test tests/unit/overview.cjs
       - name: Firmware setup and SSH reminder

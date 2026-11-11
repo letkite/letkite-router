@@ -1,0 +1,2 @@
+config mihomo 'main'
+    option enabled '0'

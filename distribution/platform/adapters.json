@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "adapters": [
+    {"id":"openwrt", "family":"openwrt", "packaging_backends":["apk","opkg"], "builder_availability":"official-imagebuilder-sdk-candidate", "package_trust_requirements":["release-matched signed feed", "pinned binary digest", "architecture and ABI validation"], "flash_safety_status":"requires-exact-board-version-layout-review", "bsp_dependency":false, "minimum_resources":{"ram_mib":256,"free_storage_mib":16}, "integration_tier":"agent-only"},
+    {"id":"immortalwrt", "family":"immortalwrt", "packaging_backends":["apk","opkg"], "builder_availability":"fork-builder-requires-verification", "package_trust_requirements":["fork release and signing keys review", "binary ABI validation", "pinned binary digest"], "flash_safety_status":"unverified", "bsp_dependency":false, "minimum_resources":{"ram_mib":256,"free_storage_mib":16}, "integration_tier":"research-only"},
+    {"id":"qsdk", "family":"vendor-qsdk", "packaging_backends":["opkg"], "builder_availability":"vendor-bsp-source-build-candidate", "package_trust_requirements":["OEM feed and signing keys review", "libc and kernel ABI review", "proprietary component licensing review"], "flash_safety_status":"blocked", "bsp_dependency":true, "minimum_resources":{"ram_mib":256,"free_storage_mib":16}, "integration_tier":"research-only"},
+    {"id":"unknown", "family":"unknown", "packaging_backends":[], "builder_availability":"unavailable", "package_trust_requirements":["manual firmware provenance and ABI review"], "flash_safety_status":"blocked", "bsp_dependency":null, "minimum_resources":{"ram_mib":256,"free_storage_mib":16}, "integration_tier":"research-only"}
+  ]
+}
