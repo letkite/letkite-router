@@ -18,6 +18,9 @@ files=(
   tests/unit/*.sh
   tests/openwrt/*.sh
   scripts/*.sh
+  distribution/scripts/*.sh
+  distribution/tests/*.sh
+  distribution/files/etc/uci-defaults/*
 )
 
 { echo '#!/bin/sh'; cat packages/letkite-agent/files/release packages/letkite-agent/files/fetch.sh; } \

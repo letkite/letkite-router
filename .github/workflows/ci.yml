@@ -60,6 +60,8 @@ jobs:
           persist-credentials: false
       - name: LuCI claim lifecycle
         run: node --test tests/unit/overview.cjs
+      - name: Router OS image profiles (dry run)
+        run: distribution/tests/test-profiles.sh
       - name: Firmware setup and SSH reminder
         run: tests/unit/setup.sh
       - name: Pre-install script (download, SHA-256, architectures)

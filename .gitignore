@@ -8,3 +8,7 @@
 private-key.pem
 key-build*
 __pycache__/
+
+# OpenWrt ImageBuilder archives, built firmware and temporary inspection images
+/distribution/.cache/
+/distribution/out/
