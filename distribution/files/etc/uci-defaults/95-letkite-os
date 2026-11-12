@@ -1,0 +1,12 @@
+#!/bin/sh
+# First boot of a LetKite Router OS image: mark the build, and leave WLAN,
+# WAN, LAN, the firewall and the radio calibration as OpenWrt sets them.
+mkdir -p /etc/letkite-router-os
+printf '%s\n' 'prototype-0.1' > /etc/letkite-router-os/distribution
+# A container runtime does not start until its owner gives it persistent
+# storage (x86-full; README.md, "Docker").
+if [ -x /etc/init.d/dockerd ]; then
+	/etc/init.d/dockerd disable
+	/etc/init.d/dockerd stop
+fi
+exit 0
