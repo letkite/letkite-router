@@ -4,13 +4,13 @@
 # scripts/release-table.py from the release's signed release.json and its
 # SHA256SUMS (see .github/workflows/bump.yml); do not edit by hand.
 # shellcheck disable=SC2034 # read by fetch.sh, by name
-AGENT_VERSION=1.6.1
-AGENT_FILE_x86_64=letkite-agent-linux-x86_64
-AGENT_SHA256_x86_64=dcbae183bf902a5145137cbaedf03eaca160d2ef73a5e907ab14b710da67c7c4
-AGENT_SIZE_x86_64=8294440
-AGENT_FILE_arm64=letkite-agent-linux-arm64
-AGENT_SHA256_arm64=a6036770829887e59bda87dbd98029a8519bb845588e1386c84ddb2d9d375c6d
-AGENT_SIZE_arm64=7132560
-AGENT_FILE_armv7=letkite-agent-linux-armv7
-AGENT_SHA256_armv7=e7e9902b13a4b6c99202b7acfa5a713fb26a7429dd3e0c97745b094f3f39706c
-AGENT_SIZE_armv7=7059940
+AGENT_VERSION=1.9.5
+AGENT_FILE_x86_64=letkite-agent-router-linux-x86_64
+AGENT_SHA256_x86_64=b4351fc0d16a264bc143ad93ecb5ea27cbbb5d540fcf79268024591ab2cdbee1
+AGENT_SIZE_x86_64=8205560
+AGENT_FILE_arm64=letkite-agent-router-linux-arm64
+AGENT_SHA256_arm64=41b655aa743e04c617c8c74c1333afe98ec5c5b8b88333548b4ee03e3ffcf426
+AGENT_SIZE_arm64=7045896
+AGENT_FILE_armv7=letkite-agent-router-linux-armv7
+AGENT_SHA256_armv7=2b9cd00e1c6d2fa033b531eb9a8d3e2119c43410249165cd2a30745cea31d1cf
+AGENT_SIZE_armv7=7017660
