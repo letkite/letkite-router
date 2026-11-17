@@ -330,3 +330,90 @@ msgstr "ja"
 #: htdocs/luci-static/resources/view/letkite/overview.js:143
 msgid "Pair"
 msgstr "Koppeln"
+
+msgid "(not connected now)"
+msgstr "(gerade nicht verbunden)"
+
+msgid "A device with a fixed address: its MAC address."
+msgstr "Ein Gerät mit fester Adresse: seine MAC-Adresse."
+
+msgid "AI tools"
+msgstr "KI-Tools"
+
+msgid "Add"
+msgstr "Hinzufügen"
+
+msgid "Block QUIC"
+msgstr "QUIC sperren"
+
+msgid "Chosen devices cannot use QUIC (UDP port 443), so browsers use TCP, which the rules apply to. Without this, sites that use QUIC bypass the rules."
+msgstr "Ausgewählte Geräte können QUIC (UDP-Port 443) nicht nutzen, daher verwenden Browser TCP, für das die Regeln gelten. Ohne diese Option umgehen Websites mit QUIC die Regeln."
+
+msgid "Devices"
+msgstr "Geräte"
+
+msgid "Devices you choose here follow your LetKite account's routing rules, without the agent installed on them. Only TCP is routed. If the agent stops, they go out directly again within 15 seconds."
+msgstr "Hier ausgewählte Geräte folgen den Routing-Regeln Ihres LetKite-Kontos, ohne dass der Agent auf ihnen installiert ist. Nur TCP wird geroutet. Stoppt der Agent, gehen sie innerhalb von 15 Sekunden wieder direkt ins Internet."
+
+msgid "IPv4 address"
+msgstr "IPv4-Adresse"
+
+msgid "LAN"
+msgstr "LAN"
+
+msgid "LAN routing"
+msgstr "LAN-Routing"
+
+msgid "MAC address"
+msgstr "MAC-Adresse"
+
+msgid "More about LAN routing"
+msgstr "Mehr zum LAN-Routing"
+
+msgid "Name"
+msgstr "Name"
+
+msgid "No devices have an address from this router yet."
+msgstr "Noch hat kein Gerät eine Adresse von diesem Router."
+
+msgid "Other device"
+msgstr "Anderes Gerät"
+
+msgid "Route"
+msgstr "Routen"
+
+msgid "Route chosen devices"
+msgstr "Ausgewählte Geräte routen"
+
+msgid "Routing"
+msgstr "Routing"
+
+msgid "Routing is off for this router. Turn it on in the LetKite dashboard, under Routing; devices chosen here follow it then."
+msgstr "Routing ist für diesen Router aus. Schalten Sie es im LetKite-Dashboard unter Routing ein; die hier ausgewählten Geräte folgen ihm dann."
+
+msgid "Saved. The agent applies it within 5 seconds."
+msgstr "Gespeichert. Der Agent übernimmt es innerhalb von 5 Sekunden."
+
+msgid "That is not a MAC address."
+msgstr "Das ist keine MAC-Adresse."
+
+msgid "The agent is not running, so nothing is routed."
+msgstr "Der Agent läuft nicht, daher wird nichts geroutet."
+
+msgid "Their connections follow your account's routing rules. Other devices are not touched."
+msgstr "Ihre Verbindungen folgen den Routing-Regeln Ihres Kontos. Andere Geräte bleiben unberührt."
+
+msgid "This agent version cannot route the LAN yet; it will once it updates itself."
+msgstr "Diese Agent-Version kann das LAN noch nicht routen; sie kann es, sobald sie sich aktualisiert hat."
+
+msgid "everything"
+msgstr "alles"
+
+msgid "off"
+msgstr "aus"
+
+msgid "rules"
+msgstr "Regeln"
+
+msgid "unknown"
+msgstr "unbekannt"

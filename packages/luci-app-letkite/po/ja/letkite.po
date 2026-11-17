@@ -330,3 +330,90 @@ msgstr "はい"
 #: htdocs/luci-static/resources/view/letkite/overview.js:143
 msgid "Pair"
 msgstr "ペアリング"
+
+msgid "(not connected now)"
+msgstr "（現在未接続）"
+
+msgid "A device with a fixed address: its MAC address."
+msgstr "固定アドレスのデバイス：その MAC アドレス。"
+
+msgid "AI tools"
+msgstr "AI ツール"
+
+msgid "Add"
+msgstr "追加"
+
+msgid "Block QUIC"
+msgstr "QUIC をブロック"
+
+msgid "Chosen devices cannot use QUIC (UDP port 443), so browsers use TCP, which the rules apply to. Without this, sites that use QUIC bypass the rules."
+msgstr "選んだデバイスは QUIC（UDP ポート 443）を使えなくなり、ブラウザーはルールが適用される TCP を使います。これをオフにすると、QUIC を使うサイトはルールを通りません。"
+
+msgid "Devices"
+msgstr "デバイス"
+
+msgid "Devices you choose here follow your LetKite account's routing rules, without the agent installed on them. Only TCP is routed. If the agent stops, they go out directly again within 15 seconds."
+msgstr "ここで選んだデバイスは、エージェントをインストールしなくても LetKite アカウントのルーティングルールに従います。ルーティングされるのは TCP だけです。エージェントが止まると、15 秒以内に元どおり直接接続に戻ります。"
+
+msgid "IPv4 address"
+msgstr "IPv4 アドレス"
+
+msgid "LAN"
+msgstr "LAN"
+
+msgid "LAN routing"
+msgstr "LAN ルーティング"
+
+msgid "MAC address"
+msgstr "MAC アドレス"
+
+msgid "More about LAN routing"
+msgstr "LAN ルーティングについて"
+
+msgid "Name"
+msgstr "名前"
+
+msgid "No devices have an address from this router yet."
+msgstr "このルーターからアドレスを受け取ったデバイスはまだありません。"
+
+msgid "Other device"
+msgstr "その他のデバイス"
+
+msgid "Route"
+msgstr "ルーティング"
+
+msgid "Route chosen devices"
+msgstr "選んだデバイスをルーティング"
+
+msgid "Routing"
+msgstr "ルーティング"
+
+msgid "Routing is off for this router. Turn it on in the LetKite dashboard, under Routing; devices chosen here follow it then."
+msgstr "このルーターではルーティングがオフです。LetKite ダッシュボードの「ルーティング」でオンにすると、ここで選んだデバイスがそれに従います。"
+
+msgid "Saved. The agent applies it within 5 seconds."
+msgstr "保存しました。エージェントが 5 秒以内に反映します。"
+
+msgid "That is not a MAC address."
+msgstr "MAC アドレスではありません。"
+
+msgid "The agent is not running, so nothing is routed."
+msgstr "エージェントが動いていないため、何もルーティングされていません。"
+
+msgid "Their connections follow your account's routing rules. Other devices are not touched."
+msgstr "これらの接続はアカウントのルーティングルールに従います。ほかのデバイスには影響しません。"
+
+msgid "This agent version cannot route the LAN yet; it will once it updates itself."
+msgstr "このバージョンのエージェントはまだ LAN をルーティングできません。自動更新後に使えるようになります。"
+
+msgid "everything"
+msgstr "すべて"
+
+msgid "off"
+msgstr "オフ"
+
+msgid "rules"
+msgstr "ルール"
+
+msgid "unknown"
+msgstr "不明"

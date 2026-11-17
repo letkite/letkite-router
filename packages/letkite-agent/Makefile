@@ -10,7 +10,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=letkite-agent
 PKG_VERSION:=$(shell sed -n 's/^AGENT_VERSION=//p' $(CURDIR)/files/release)
-PKG_RELEASE:=2
+PKG_RELEASE:=3
 
 PKG_MAINTAINER:=LetKite <contact@letkite.com>
 PKG_LICENSE:=MIT

@@ -9,7 +9,7 @@ LetKite 让你账户里的 AI 助手访问你的机器。通过路由器，它�
 本仓库包含：
 
 - **`letkite-agent`**：安装 LetKite agent 的 OpenWrt 软件包。
-- **`luci-app-letkite`**：LuCI 里的「服务 → LetKite」。它显示 agent 的状态，把路由器配对到你的账户（显示配对码和二维码），暂停和恢复 agent，设置权限，查看日志。
+- **`luci-app-letkite`**：LuCI 里的「服务 → LetKite」。它显示 agent 的状态，把路由器配对到你的账户（显示配对码和二维码），暂停和恢复 agent，设置权限，让选中的局域网设备按账户的规则分流，查看日志。
 
 **这里没有什么。** agent 程序本身**不在**这里。它是闭源程序，由 LetKite 编译、签名，发布在 `get.letkite.com`。本仓库是它外面的 MIT 许可的打包和 LuCI 应用。软件包里不含程序：安装时下载一个确定的版本，核对 SHA-256 以后才装上（见[程序如何验证](#程序如何验证)）。
 
@@ -104,7 +104,7 @@ Image Builder/buildroot 中不会下载程序。**须把经过校验、支持认
 
 完整 `setup.toml`、首次启动规则和 CLI/JSON 契约（`status --json --refresh`、`enrollment`、`install --claim`）见 [device-integration.md §5、§5.1](https://github.com/letkite/letkite/blob/dev/docs/device-integration.md#5-无人值守注册)。LuCI 通过需要写权限的 rpcd 方法调用短时 status-with-refresh；只读 `status` 不会申请或暴露代码，只读日志也过滤认领和代码行。
 
-**暂停**会断开 agent：30 分钟、1 小时、1 天、自定时长，或者直到手动恢复。**权限**页显示路由器本地的上限（见[权限](#权限)）。**日志**页显示 `logread` 里 agent 的日志。
+**暂停**会断开 agent：30 分钟、1 小时、1 天、自定时长，或者直到手动恢复。**权限**页显示路由器本地的上限（见[权限](#权限)）。**局域网分流**页选择按账户分流规则走的设备（见[局域网分流](#局域网分流)）。**日志**页显示 `logread` 里 agent 的日志。
 
 ## 权限
 
@@ -146,6 +146,33 @@ letkite-agent ceiling --path /etc/letkite/ceiling.toml   # 打印 agent 读到�
 ```
 
 每一项都要写，未知的键会被拒绝。上限文件读不了时 agent 不会启动，LuCI 会显示原因。
+
+## 局域网分流
+
+路由器局域网里的设备（手机、电视、访客的电脑）不用装 agent，也能按 LetKite 账户的分流规则走（控制台的「分流」：AI 工具、你自己的规则或全部）。在 **服务 → LetKite → 局域网分流** 里选：勾上「分流选中的设备」，再勾设备（来自路由器的 DHCP 租约，或手动添加 MAC 地址），然后「保存」。agent 5 秒内生效，不用重启。
+
+怎么工作：
+
+- agent 加一张自己的 nftables 表 `inet letkite_lan`（不改 fw4 的规则），把选中设备（按 MAC 地址）的 **TCP** 重定向到 agent 的 7892 端口；去路由器自己、私有地址、链路本地和组网地址的流量不动。
+- agent 从 TLS 握手（SNI）或 HTTP 的 `Host` 拿到网站的名字，按规则决定：**直连**、经 **LetKite 的出口**，或**拒绝**。没有名字的连接按地址判断。
+- 「阻止 QUIC」（默认开）拒绝选中设备的 UDP 443，浏览器改用 TCP，规则对 TCP 生效；不开时用 QUIC 的网站会绕过规则。
+- 这台路由器的分流关着时（控制台里、上限里 `route = "off"`、或 `letkite-agent route off`）、开关没开或没选设备时，什么都不分流。
+
+**agent 停了，局域网照常能用**：选中的设备每次只在重定向里留 15 秒，运行中的 agent 每 5 秒续一次。agent 被停掉、崩溃或卡住时，最多 15 秒后这些设备恢复直连；正常停止时表立刻删掉。
+
+设置在 `/etc/config/letkite`：
+
+```
+config lanroute 'lan'
+	option enabled '1'
+	option block_quic '1'
+	list client 'aa:bb:cc:dd:ee:ff'
+	# option port '7892'
+```
+
+`letkite-agent route status` 有一行 `lan`：分流了几台设备，或者为什么没分流。
+
+还不分流的：UDP（除了拒绝 QUIC）、DNS（设备照旧用路由器的解析）、整个网口或 VLAN。需要 fw4（OpenWrt 22.03 起）。防火墙区域的入站策略是 `reject` 的设备（常见的访客网络）不能分流：被重定向的连接会被拒绝。
 
 ## 卸载
 

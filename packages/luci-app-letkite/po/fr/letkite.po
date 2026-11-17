@@ -330,3 +330,90 @@ msgstr "oui"
 #: htdocs/luci-static/resources/view/letkite/overview.js:143
 msgid "Pair"
 msgstr "Associer"
+
+msgid "(not connected now)"
+msgstr "(non connecté en ce moment)"
+
+msgid "A device with a fixed address: its MAC address."
+msgstr "Un appareil à adresse fixe : son adresse MAC."
+
+msgid "AI tools"
+msgstr "outils d'IA"
+
+msgid "Add"
+msgstr "Ajouter"
+
+msgid "Block QUIC"
+msgstr "Bloquer QUIC"
+
+msgid "Chosen devices cannot use QUIC (UDP port 443), so browsers use TCP, which the rules apply to. Without this, sites that use QUIC bypass the rules."
+msgstr "Les appareils choisis ne peuvent pas utiliser QUIC (port UDP 443) : les navigateurs utilisent alors TCP, auquel les règles s'appliquent. Sans cela, les sites qui utilisent QUIC contournent les règles."
+
+msgid "Devices"
+msgstr "Appareils"
+
+msgid "Devices you choose here follow your LetKite account's routing rules, without the agent installed on them. Only TCP is routed. If the agent stops, they go out directly again within 15 seconds."
+msgstr "Les appareils choisis ici suivent les règles de routage de votre compte LetKite, sans que l'agent y soit installé. Seul TCP est routé. Si l'agent s'arrête, ils sortent de nouveau directement en moins de 15 secondes."
+
+msgid "IPv4 address"
+msgstr "Adresse IPv4"
+
+msgid "LAN"
+msgstr "LAN"
+
+msgid "LAN routing"
+msgstr "Routage du LAN"
+
+msgid "MAC address"
+msgstr "Adresse MAC"
+
+msgid "More about LAN routing"
+msgstr "En savoir plus sur le routage du LAN"
+
+msgid "Name"
+msgstr "Nom"
+
+msgid "No devices have an address from this router yet."
+msgstr "Aucun appareil n'a encore d'adresse attribuée par ce routeur."
+
+msgid "Other device"
+msgstr "Autre appareil"
+
+msgid "Route"
+msgstr "Router"
+
+msgid "Route chosen devices"
+msgstr "Router les appareils choisis"
+
+msgid "Routing"
+msgstr "Routage"
+
+msgid "Routing is off for this router. Turn it on in the LetKite dashboard, under Routing; devices chosen here follow it then."
+msgstr "Le routage est désactivé pour ce routeur. Activez-le dans le tableau de bord LetKite, sous Routage ; les appareils choisis ici le suivront alors."
+
+msgid "Saved. The agent applies it within 5 seconds."
+msgstr "Enregistré. L'agent l'applique en moins de 5 secondes."
+
+msgid "That is not a MAC address."
+msgstr "Ce n'est pas une adresse MAC."
+
+msgid "The agent is not running, so nothing is routed."
+msgstr "L'agent ne fonctionne pas : rien n'est routé."
+
+msgid "Their connections follow your account's routing rules. Other devices are not touched."
+msgstr "Leurs connexions suivent les règles de routage de votre compte. Les autres appareils ne sont pas concernés."
+
+msgid "This agent version cannot route the LAN yet; it will once it updates itself."
+msgstr "Cette version de l'agent ne sait pas encore router le LAN ; elle le pourra après sa mise à jour automatique."
+
+msgid "everything"
+msgstr "tout"
+
+msgid "off"
+msgstr "désactivé"
+
+msgid "rules"
+msgstr "règles"
+
+msgid "unknown"
+msgstr "inconnu"

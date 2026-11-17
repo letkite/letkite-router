@@ -330,3 +330,90 @@ msgstr "예"
 #: htdocs/luci-static/resources/view/letkite/overview.js:143
 msgid "Pair"
 msgstr "페어링"
+
+msgid "(not connected now)"
+msgstr "(지금 연결되지 않음)"
+
+msgid "A device with a fixed address: its MAC address."
+msgstr "고정 주소를 쓰는 기기: 그 기기의 MAC 주소."
+
+msgid "AI tools"
+msgstr "AI 도구"
+
+msgid "Add"
+msgstr "추가"
+
+msgid "Block QUIC"
+msgstr "QUIC 차단"
+
+msgid "Chosen devices cannot use QUIC (UDP port 443), so browsers use TCP, which the rules apply to. Without this, sites that use QUIC bypass the rules."
+msgstr "선택한 기기는 QUIC(UDP 포트 443)를 쓸 수 없으므로 브라우저가 규칙이 적용되는 TCP를 사용합니다. 이 옵션이 없으면 QUIC를 쓰는 사이트는 규칙을 우회합니다."
+
+msgid "Devices"
+msgstr "기기"
+
+msgid "Devices you choose here follow your LetKite account's routing rules, without the agent installed on them. Only TCP is routed. If the agent stops, they go out directly again within 15 seconds."
+msgstr "여기서 선택한 기기는 에이전트를 설치하지 않아도 LetKite 계정의 라우팅 규칙을 따릅니다. TCP만 라우팅됩니다. 에이전트가 멈추면 15초 안에 다시 직접 연결됩니다."
+
+msgid "IPv4 address"
+msgstr "IPv4 주소"
+
+msgid "LAN"
+msgstr "LAN"
+
+msgid "LAN routing"
+msgstr "LAN 라우팅"
+
+msgid "MAC address"
+msgstr "MAC 주소"
+
+msgid "More about LAN routing"
+msgstr "LAN 라우팅 자세히 보기"
+
+msgid "Name"
+msgstr "이름"
+
+msgid "No devices have an address from this router yet."
+msgstr "아직 이 라우터에서 주소를 받은 기기가 없습니다."
+
+msgid "Other device"
+msgstr "다른 기기"
+
+msgid "Route"
+msgstr "라우팅"
+
+msgid "Route chosen devices"
+msgstr "선택한 기기 라우팅"
+
+msgid "Routing"
+msgstr "라우팅"
+
+msgid "Routing is off for this router. Turn it on in the LetKite dashboard, under Routing; devices chosen here follow it then."
+msgstr "이 라우터는 라우팅이 꺼져 있습니다. LetKite 대시보드의 라우팅에서 켜면 여기서 선택한 기기가 따릅니다."
+
+msgid "Saved. The agent applies it within 5 seconds."
+msgstr "저장했습니다. 에이전트가 5초 안에 적용합니다."
+
+msgid "That is not a MAC address."
+msgstr "MAC 주소가 아닙니다."
+
+msgid "The agent is not running, so nothing is routed."
+msgstr "에이전트가 실행 중이 아니어서 아무것도 라우팅되지 않습니다."
+
+msgid "Their connections follow your account's routing rules. Other devices are not touched."
+msgstr "이 기기들의 연결은 계정의 라우팅 규칙을 따릅니다. 다른 기기는 영향을 받지 않습니다."
+
+msgid "This agent version cannot route the LAN yet; it will once it updates itself."
+msgstr "이 에이전트 버전은 아직 LAN을 라우팅할 수 없습니다. 스스로 업데이트하면 가능해집니다."
+
+msgid "everything"
+msgstr "전체"
+
+msgid "off"
+msgstr "꺼짐"
+
+msgid "rules"
+msgstr "규칙"
+
+msgid "unknown"
+msgstr "알 수 없음"

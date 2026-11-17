@@ -1,14 +1,14 @@
 {
 	"luci-app-letkite": {
-		"description": "Grant access to the LetKite agent (status, pairing, pause, permissions, log)",
+		"description": "Grant access to the LetKite agent (status, pairing, pause, permissions, LAN routing, log)",
 		"read": {
 			"ubus": {
-				"letkite": [ "status", "ceiling_get", "log" ]
+				"letkite": [ "status", "ceiling_get", "log", "lanroute_get" ]
 			}
 		},
 		"write": {
 			"ubus": {
-				"letkite": [ "claim_status", "enroll_start", "enroll_poll", "pause", "resume", "ceiling_set" ]
+				"letkite": [ "claim_status", "enroll_start", "enroll_poll", "pause", "resume", "ceiling_set", "lanroute_set" ]
 			}
 		}
 	}

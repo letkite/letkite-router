@@ -1,2 +1,6 @@
 config letkite 'main'
 	option claim '0'
+
+config lanroute 'lan'
+	option enabled '0'
+	option block_quic '1'

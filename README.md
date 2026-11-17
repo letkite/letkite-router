@@ -9,7 +9,7 @@ LetKite lets AI assistants on your account reach your machines, and, through a r
 This repository contains:
 
 - **`letkite-agent`**: an OpenWrt package that installs the LetKite agent.
-- **`luci-app-letkite`**: Services → LetKite in LuCI. It shows the agent's status, pairs the router with your account (a code and a QR code), pauses and resumes the agent, sets its permissions, and shows its log.
+- **`luci-app-letkite`**: Services → LetKite in LuCI. It shows the agent's status, pairs the router with your account (a code and a QR code), pauses and resumes the agent, sets its permissions, routes the LAN devices you choose through your account's rules, and shows its log.
 
 **What this is not.** The agent itself is **not** here. It is a closed-source program, built and signed by LetKite, and published on `get.letkite.com`. This repository is the MIT-licensed packaging and LuCI app around it. The package does not contain the program: it downloads one exact release, checks its SHA-256, and installs it ([How the program is verified](#how-the-program-is-verified)).
 
@@ -102,7 +102,7 @@ The package pre-install download is skipped in Image Builder/buildroot. **Includ
 
 See [device-integration.md §5 and §5.1](https://github.com/letkite/letkite/blob/dev/docs/device-integration.md#5-无人值守注册) for `setup.toml`, first-boot behavior and the exact CLI/JSON contract (`status --json --refresh`, `enrollment`, `install --claim`). LuCI uses the short status-with-refresh call through a write-authorized rpcd method; read-only `status` never requests or exposes codes, and read-only logs filter claim/code lines.
 
-**Pause** disconnects the agent for 30 minutes, an hour, a day, a custom time, or until you resume it. **Permissions** shows the router's local ceiling (see [Permissions](#permissions)). **Log** shows the agent's lines from `logread`.
+**Pause** disconnects the agent for 30 minutes, an hour, a day, a custom time, or until you resume it. **Permissions** shows the router's local ceiling (see [Permissions](#permissions)). **LAN routing** chooses the devices that follow your account's routing rules (see [LAN routing](#lan-routing)). **Log** shows the agent's lines from `logread`.
 
 ## Permissions
 
@@ -144,6 +144,33 @@ letkite-agent ceiling --path /etc/letkite/ceiling.toml   # prints what the agent
 ```
 
 Every key must be present and unknown keys are refused. The agent does not start with a ceiling it cannot read; LuCI then shows why.
+
+## LAN routing
+
+Devices on the router's LAN (phones, TVs, a guest's laptop) can follow your LetKite account's routing rules (the dashboard's **Routing**: AI tools, your own rules, or everything) without the agent installed on them. Choose them under **Services → LetKite → LAN routing**: tick **Route chosen devices**, then the devices (from the router's DHCP leases, or a MAC address you add), and **Save**. The agent picks the change up within 5 seconds; nothing restarts.
+
+What happens:
+
+- The agent adds its own nftables table, `inet letkite_lan` (fw4's rules are not changed). It redirects the **TCP** of the chosen devices (by MAC address) to the agent on port 7892. Traffic to the router itself and to private, link-local and mesh addresses is left alone.
+- The agent takes the site's name from the TLS handshake (SNI) or the HTTP `Host` header, and decides as the rules say: **direct**, through **LetKite's exit**, or **refused**. Connections without a name are decided by their address.
+- **Block QUIC** (on by default) refuses the chosen devices' UDP port 443. Browsers then fall back to TCP, which the rules apply to; without it, sites that use QUIC bypass the rules.
+- Nothing is routed while routing is off for this router (in the dashboard, with `route = "off"` in the ceiling, or `letkite-agent route off`). The same holds when the switch is off or no device is chosen.
+
+**If the agent stops, the LAN keeps working.** The chosen devices stay in the redirect for 15 seconds at a time, and the running agent renews them every 5 seconds. If the agent is stopped, crashes or hangs, they go straight out again within 15 seconds. A clean stop removes the table at once.
+
+The settings are in `/etc/config/letkite`:
+
+```
+config lanroute 'lan'
+	option enabled '1'
+	option block_quic '1'
+	list client 'aa:bb:cc:dd:ee:ff'
+	# option port '7892'
+```
+
+`letkite-agent route status` shows a `lan` line: how many devices are routed, or why not.
+
+Not routed yet: UDP (other than refusing QUIC), DNS (devices keep using the router's resolver), and whole interfaces or VLANs. Routing needs fw4 (OpenWrt 22.03 or later). A device on a firewall zone whose input policy is `reject` (a typical guest network) cannot be routed: the redirected connections would be refused.
 
 ## Uninstall
 

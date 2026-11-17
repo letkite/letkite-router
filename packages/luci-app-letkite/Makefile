@@ -8,13 +8,14 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-letkite
 PKG_VERSION:=1.0.0
-PKG_RELEASE:=2
+PKG_RELEASE:=3
 PKG_LICENSE:=MIT
 PKG_MAINTAINER:=LetKite <contact@letkite.com>
 
 LUCI_TITLE:=LuCI support for the LetKite agent
 LUCI_DESCRIPTION:=Pair this router with a LetKite account, pause and resume \
-	the agent, choose what AI assistants may do here, and read its log.
+	the agent, choose what AI assistants may do here, route chosen LAN devices \
+	through the account's rules, and read its log.
 LUCI_DEPENDS:=+letkite-agent +luci-base +jsonfilter
 LUCI_PKGARCH:=all
 
