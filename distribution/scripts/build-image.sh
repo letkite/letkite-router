@@ -15,7 +15,9 @@ while (($#)); do
     *) die "unknown argument: $1" ;;
   esac
 done
-case "$profile" in ax3000t|x86-full) ;; *) die "supported profiles: ax3000t, x86-full (RD08 intentionally blocked)" ;; esac
+case "$profile" in
+  be3600-rd15|rd15) die "RD15 requires experimental source-build preparation; official ImageBuilder prohibited. See distribution/docs/BE3600_RD15_PLAN.md" ;;
+  ax3000t|x86-full) ;; *) die "supported profiles: ax3000t, x86-full (RD08 intentionally blocked)" ;; esac
 [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || die "invalid OpenWrt version"
 # Profiles are audited source-controlled files, never externally supplied.
 # shellcheck source=/dev/null

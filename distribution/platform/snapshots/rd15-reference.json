@@ -1,0 +1,32 @@
+{
+  "provenance": "Synthetic expected hardware from pinned upstream; NOT owner-device evidence",
+  "model": "RD15",
+  "soc": "IPQ5332",
+  "ram_mib": 256,
+  "nand": {
+    "model": "GD5F1GM7REYIG",
+    "size_bytes": 134217728,
+    "page_bytes": 2048,
+    "oob_bytes": 128,
+    "erase_bytes": 131072,
+    "ecc_bits_per_512": 8
+  },
+  "mdio": {
+    "switch_address": "0x1d",
+    "switch": "YT9215S",
+    "phy_address": "0x07",
+    "phy_id": "0x4f51ea19",
+    "absent_address": "0x0c"
+  },
+  "slots": {
+    "rootfs": 44040192,
+    "rootfs_1": 44040192
+  },
+  "recovery": {
+    "uart_1v8_verified": false,
+    "private_backups_verified": false,
+    "stock_slot1_verified": false,
+    "ram_boot_verified": false
+  },
+  "sizes": {}
+}

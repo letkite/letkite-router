@@ -1,0 +1,66 @@
+{
+  "id": "be3600-rd15",
+  "backend": "experimental-source-build",
+  "official_imagebuilder_allowed": false,
+  "target": "qualcommbe/ipq53xx",
+  "architecture": "aarch64",
+  "kernel": "6.18",
+  "reference_commit": "d9c8a55a1eedf0956f85f0ef2a591a30d0415464",
+  "base_commit": "e46ea77ba4f431c72301c3d07220e454450b3070",
+  "feeds": [
+    "src-git packages https://git.openwrt.org/feed/packages.git^712ee13a837449fd91b5279048303d3a790d691b",
+    "src-git luci https://git.openwrt.org/project/luci.git^0b6e4127dec31ff7b86a96924e08728be8da1ef9",
+    "src-git routing https://git.openwrt.org/feed/routing.git^4b9891b9136259f93294a424507ed24c5e8c1cbd",
+    "src-git telephony https://git.openwrt.org/feed/telephony.git^5d68d53c160a325ea9d03fce393e051573bcc736",
+    "src-git video https://github.com/openwrt/video.git^644a66261288b4a95dbc6e46fe805d33cb9f71d9"
+  ],
+  "vendor_sha256": "cb2d7e40a74c33439fe61e78f1c2c08bf4effdb6617214118f3da783fd7a5c0a",
+  "vendor_policy": "verified-local-only; no unverified override; no redistribution",
+  "agent_provider_qualified": false,
+  "agent_requirements": [
+    "signed release and authenticated packages",
+    "claim-compatible version and real integration test",
+    "aarch64 ABI",
+    "two-copy storage and measured runtime headroom"
+  ],
+  "prohibited": [
+    "mihomo",
+    "docker"
+  ],
+  "expected": {
+    "model": "RD15",
+    "soc": "IPQ5332",
+    "ram_mib": 256,
+    "nand": {
+      "model": "GD5F1GM7REYIG",
+      "size_bytes": 134217728,
+      "page_bytes": 2048,
+      "oob_bytes": 128,
+      "erase_bytes": 131072,
+      "ecc_bits_per_512": 8
+    },
+    "mdio": {
+      "switch_address": "0x1d",
+      "switch": "YT9215S",
+      "phy_address": "0x07",
+      "phy_id": "0x4f51ea19",
+      "absent_address": "0x0c"
+    },
+    "slots": {
+      "rootfs": 44040192,
+      "rootfs_1": 44040192
+    }
+  },
+  "limits": {
+    "kernel_bytes": 10539008,
+    "filesystem_bytes": 16777216,
+    "slot_bytes": 44040192,
+    "agent_writable_bytes": 16777216
+  },
+  "recovery_required": [
+    "uart_1v8_verified",
+    "private_backups_verified",
+    "stock_slot1_verified",
+    "ram_boot_verified"
+  ]
+}

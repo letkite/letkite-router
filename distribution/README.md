@@ -142,3 +142,10 @@ trusting downloaded metadata; stop on signature errors. Do not use `curl|sh`, an
 arbitrary executable, or disable apk signature checking as a workaround.
 
 Optional Clash Meta / Mihomo binary integration: see [operator and trust policy](docs/mihomo.md). Default `ENABLE_MIHOMO=0`; no Mihomo/OpenClash APK is assumed available.
+
+## BE3600 RD15 development preparation
+
+The experimental RD15 has a separate data-driven source-build profile and
+[offline preflight plan](docs/BE3600_RD15_PLAN.md). It is rejected by the official
+ImageBuilder path. Source auditing produces no images; vendor staging, agent
+integration and flashing remain blocked. Run `python3 distribution/tests/test-rd15.py`.

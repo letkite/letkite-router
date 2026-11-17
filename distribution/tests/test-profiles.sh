@@ -40,3 +40,10 @@ if find "$root/distribution/files" -iname '*agent*' -o -iname '*node.key*' -o -i
   echo "ERROR: agent data in default overlay" >&2; exit 1
 fi
 echo "All distribution profile checks passed"
+
+for profile in be3600-rd15 rd15 rd16; do
+  if bash "$build" --profile "$profile" --dry-run >"$work/rd15-log" 2>&1; then
+    echo "ERROR: experimental/incompatible board accepted by ImageBuilder" >&2; exit 1
+  fi
+done
+python3 "$root/distribution/tests/test-rd15.py"
