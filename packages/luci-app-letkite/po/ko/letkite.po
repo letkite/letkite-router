@@ -417,3 +417,9 @@ msgstr "규칙"
 
 msgid "unknown"
 msgstr "알 수 없음"
+
+msgid "The firewall zone \"lan\" does not accept input, so chosen devices would lose their TCP connections. Set its input to accept before choosing devices."
+msgstr "방화벽 영역 \"lan\"이 입력을 허용하지 않아 선택한 기기의 TCP 연결이 끊깁니다. 기기를 선택하기 전에 입력을 \"허용\"으로 설정하세요."
+
+msgid "Not routed: on the firewall zone \"%s\", not \"lan\"."
+msgstr "라우팅되지 않음: 방화벽 영역 \"%s\"에 있으며 \"lan\"이 아닙니다."

@@ -417,3 +417,9 @@ msgstr "规则"
 
 msgid "unknown"
 msgstr "未知"
+
+msgid "The firewall zone \"lan\" does not accept input, so chosen devices would lose their TCP connections. Set its input to accept before choosing devices."
+msgstr "防火墙区域“lan”不接受入站连接，所选设备的 TCP 连接会断开。请先把它的入站设为“接受”，再选择设备。"
+
+msgid "Not routed: on the firewall zone \"%s\", not \"lan\"."
+msgstr "不会分流：在防火墙区域“%s”中，不是“lan”。"

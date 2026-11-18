@@ -417,3 +417,9 @@ msgstr "Regeln"
 
 msgid "unknown"
 msgstr "unbekannt"
+
+msgid "The firewall zone \"lan\" does not accept input, so chosen devices would lose their TCP connections. Set its input to accept before choosing devices."
+msgstr "Die Firewall-Zone „lan“ akzeptiert keine eingehenden Verbindungen, daher würden ausgewählte Geräte ihre TCP-Verbindungen verlieren. Stellen Sie ihre Eingangsrichtlinie auf „akzeptieren“, bevor Sie Geräte auswählen."
+
+msgid "Not routed: on the firewall zone \"%s\", not \"lan\"."
+msgstr "Nicht geroutet: in der Firewall-Zone „%s“, nicht „lan“."

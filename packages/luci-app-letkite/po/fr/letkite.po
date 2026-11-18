@@ -417,3 +417,9 @@ msgstr "règles"
 
 msgid "unknown"
 msgstr "inconnu"
+
+msgid "The firewall zone \"lan\" does not accept input, so chosen devices would lose their TCP connections. Set its input to accept before choosing devices."
+msgstr "La zone de pare-feu « lan » n'accepte pas le trafic entrant : les appareils choisis perdraient leurs connexions TCP. Réglez son entrée sur « accepter » avant de choisir des appareils."
+
+msgid "Not routed: on the firewall zone \"%s\", not \"lan\"."
+msgstr "Non routé : dans la zone de pare-feu « %s », pas « lan »."

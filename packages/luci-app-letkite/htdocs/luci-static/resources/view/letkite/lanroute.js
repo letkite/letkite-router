@@ -17,6 +17,11 @@ var callSet = rpc.declare({ object: 'letkite', method: 'lanroute_set', params: [
 var README = 'https://github.com/letkite/letkite-router#lan-routing';
 var MAC = /^[0-9a-f]{2}(:[0-9a-f]{2}){5}$/;
 
+/* The agent's rule (lan.rs `mac`): not a group address, not all zeros. */
+function deviceMac(mac) {
+	return MAC.test(mac) && (parseInt(mac.substr(0, 2), 16) & 1) === 0 && mac !== '00:00:00:00:00:00';
+}
+
 var MODES = {
 	'off': _('off'),
 	'ai-tools': _('AI tools'),
@@ -54,6 +59,9 @@ return view.extend({
 				_('Routing is off for this router. Turn it on in the LetKite dashboard, under Routing; devices chosen here follow it then.')));
 		if (r.lan)
 			lines.push(E('p', {}, [ E('strong', {}, _('LAN') + ': '), r.lan ]));
+		if (res.lan_input && res.lan_input !== 'ACCEPT')
+			lines.push(E('p', { 'class': 'alert-message warning' },
+				_('The firewall zone "lan" does not accept input, so chosen devices would lose their TCP connections. Set its input to accept before choosing devices.')));
 		return lines;
 	},
 
@@ -64,21 +72,26 @@ return view.extend({
 
 		(res.clients || []).forEach(function(mac) { chosen[mac] = true; });
 
-		var add = function(mac, name, ip) {
+		var add = function(mac, name, ip, zone) {
 			if (seen[mac])
 				return;
 			seen[mac] = true;
 			var box = E('input', { 'type': 'checkbox', 'data-mac': mac });
 			box.checked = !!chosen[mac];
+			/* the agent redirects devices on the "lan" zone's interfaces only */
+			var note = (zone && zone !== 'lan')
+				? E('div', { 'class': 'cbi-value-description' },
+					_('Not routed: on the firewall zone "%s", not "lan".').format(zone))
+				: '';
 			rows.push(E('tr', { 'class': 'tr' }, [
 				E('td', { 'class': 'td' }, box),
-				E('td', { 'class': 'td' }, name || '-'),
+				E('td', { 'class': 'td' }, [ name || '-', note ]),
 				E('td', { 'class': 'td' }, ip || '-'),
 				E('td', { 'class': 'td' }, E('code', {}, mac))
 			]));
 		};
 
-		(res.devices || []).forEach(function(d) { add(d.mac, d.name, d.ip); });
+		(res.devices || []).forEach(function(d) { add(d.mac, d.name, d.ip, d.zone); });
 		(res.clients || []).forEach(function(mac) { add(mac, _('(not connected now)'), ''); });
 
 		this.table = E('table', { 'class': 'table' }, [
@@ -113,7 +126,7 @@ return view.extend({
 	addManual: function() {
 		var mac = this.manual.value.trim().toLowerCase().replace(/-/g, ':');
 
-		if (!MAC.test(mac)) {
+		if (!deviceMac(mac)) {
 			ui.addNotification(null, E('p', _('That is not a MAC address.')), 'warning');
 			return;
 		}
@@ -138,6 +151,10 @@ return view.extend({
 
 		if (!res || res.ok === false) {
 			body = [ E('div', { 'class': 'cbi-section' }, E('p', { 'class': 'alert-message warning' }, (res && res.error) || _('The agent did not answer.'))) ];
+		}
+		else if (res.answered === false) {
+			body = [ E('div', { 'class': 'cbi-section' }, E('p', { 'class': 'alert-message warning' },
+				_('The agent is not running, so nothing is routed.'))) ];
 		}
 		else if (!res.supported) {
 			body = [ E('div', { 'class': 'cbi-section' }, E('p', { 'class': 'alert-message notice' },

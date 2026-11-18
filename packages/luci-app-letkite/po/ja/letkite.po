@@ -417,3 +417,9 @@ msgstr "ルール"
 
 msgid "unknown"
 msgstr "不明"
+
+msgid "The firewall zone \"lan\" does not accept input, so chosen devices would lose their TCP connections. Set its input to accept before choosing devices."
+msgstr "ファイアウォールゾーン「lan」が入力を受け付けないため、選択したデバイスの TCP 接続が失われます。デバイスを選ぶ前に、入力を「許可」に設定してください。"
+
+msgid "Not routed: on the firewall zone \"%s\", not \"lan\"."
+msgstr "ルーティングされません：ファイアウォールゾーン「%s」にあり、「lan」ではありません。"

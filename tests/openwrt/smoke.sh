@@ -191,6 +191,9 @@ on "jsonfilter -s '$lr' -e @.ok" | grep -qx true || die "lanroute_get: not ok"
 on "jsonfilter -s '$lr' -e @.enabled" | grep -qx false || die "lanroute_get: LAN routing on by default"
 on 'uci -q get letkite.lan' | grep -qx lanroute || die "no lanroute section in /etc/config/letkite"
 on 'nft list table inet letkite_lan' > /dev/null 2>&1 && die "a LAN routing table while it is off"
+# Switching it on and stopping the agent (table made, then removed) needs an
+# agent that routes the LAN; the pinned release does not yet: a follow-up
+# once a release with it is pinned.
 
 step "LuCI: the view, the menu, the ACL"
 on 'uclient-fetch -q -O /dev/null http://127.0.0.1/luci-static/resources/view/letkite/overview.js' \
@@ -225,7 +228,10 @@ reply=$(rpc 00000000000000000000000000000000 pause)
 grep -q '"error"' <<<"$reply" || die "an anonymous session called letkite pause: $reply"
 
 step "remove (not paired)"
+# a table left behind (an agent that could not remove it): prerm removes it
+on 'nft add table inet letkite_lan'
 uninstall_all
+on 'nft list table inet letkite_lan' > /dev/null 2>&1 && die "removing the package left the LAN routing table"
 on 'test ! -e /usr/lib/lua/luci/i18n/letkite.zh-cn.lmo' || die "the translation is still there"
 nothing_installed || die "removing left something behind"
 on 'ubus list letkite' > /dev/null 2>&1 && die "the rpcd object letkite is still there"

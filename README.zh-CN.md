@@ -153,12 +153,12 @@ letkite-agent ceiling --path /etc/letkite/ceiling.toml   # 打印 agent 读到�
 
 怎么工作：
 
-- agent 加一张自己的 nftables 表 `inet letkite_lan`（不改 fw4 的规则），把选中设备（按 MAC 地址）的 **TCP** 重定向到 agent 的 7892 端口；去路由器自己、私有地址、链路本地和组网地址的流量不动。
+- agent 加一张自己的 nftables 表 `inet letkite_lan`（不改 fw4 的规则），把选中设备（按 MAC 地址）的 **TCP** 重定向到 agent 的 7892 端口，只管从 fw4 的 `lan` 区域的网口进来的，从 WAN、VPN 或别的隧道进来的一概不动；去路由器自己、私有地址、链路本地和组网地址的流量不动。
 - agent 从 TLS 握手（SNI）或 HTTP 的 `Host` 拿到网站的名字，按规则决定：**直连**、经 **LetKite 的出口**，或**拒绝**。没有名字的连接按地址判断。
 - 「阻止 QUIC」（默认开）拒绝选中设备的 UDP 443，浏览器改用 TCP，规则对 TCP 生效；不开时用 QUIC 的网站会绕过规则。
-- 这台路由器的分流关着时（控制台里、上限里 `route = "off"`、或 `letkite-agent route off`）、开关没开或没选设备时，什么都不分流。
+- 这台路由器的分流关着时（控制台里、上限里 `route = "off"`、或 `letkite-agent route off`）、开关没开或没选设备时，什么都不分流；agent 暂停时（「暂停」或 `letkite-agent pause`）也一样：表删掉，恢复后重建。
 
-**agent 停了，局域网照常能用**：选中的设备每次只在重定向里留 15 秒，运行中的 agent 每 5 秒续一次。agent 被停掉、崩溃或卡住时，最多 15 秒后这些设备恢复直连；正常停止时表立刻删掉。
+**agent 停了，局域网照常能用**：选中的设备每次只在重定向里留 15 秒，运行中的 agent 每 5 秒续一次。agent 被停掉、崩溃或卡住时，最多 15 秒后这些设备恢复直连；正常停止或卸载软件包时表立刻删掉。
 
 设置在 `/etc/config/letkite`：
 
@@ -172,7 +172,7 @@ config lanroute 'lan'
 
 `letkite-agent route status` 有一行 `lan`：分流了几台设备，或者为什么没分流。
 
-还不分流的：UDP（除了拒绝 QUIC）、DNS（设备照旧用路由器的解析）、整个网口或 VLAN。需要 fw4（OpenWrt 22.03 起）。防火墙区域的入站策略是 `reject` 的设备（常见的访客网络）不能分流：被重定向的连接会被拒绝。
+还不分流的：UDP（除了拒绝 QUIC）、DNS（设备照旧用路由器的解析）、整个网口或 VLAN。需要 fw4（OpenWrt 22.03 起）。只分流 `lan` 防火墙区域里的设备；别的区域（常见的访客网络）里的设备 LuCI 标为「不会分流」。`lan` 区域的入站策略要是 `accept`（默认就是），否则被重定向的连接会被拒绝，LuCI 会提示。
 
 ## 卸载
 

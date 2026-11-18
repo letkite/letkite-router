@@ -151,12 +151,12 @@ Devices on the router's LAN (phones, TVs, a guest's laptop) can follow your LetK
 
 What happens:
 
-- The agent adds its own nftables table, `inet letkite_lan` (fw4's rules are not changed). It redirects the **TCP** of the chosen devices (by MAC address) to the agent on port 7892. Traffic to the router itself and to private, link-local and mesh addresses is left alone.
+- The agent adds its own nftables table, `inet letkite_lan` (fw4's rules are not changed). It redirects the **TCP** of the chosen devices (by MAC address) to the agent on port 7892, and only when it comes in on an interface of fw4's `lan` zone; nothing that arrives on the WAN, a VPN or another tunnel is touched. Traffic to the router itself and to private, link-local and mesh addresses is left alone.
 - The agent takes the site's name from the TLS handshake (SNI) or the HTTP `Host` header, and decides as the rules say: **direct**, through **LetKite's exit**, or **refused**. Connections without a name are decided by their address.
 - **Block QUIC** (on by default) refuses the chosen devices' UDP port 443. Browsers then fall back to TCP, which the rules apply to; without it, sites that use QUIC bypass the rules.
-- Nothing is routed while routing is off for this router (in the dashboard, with `route = "off"` in the ceiling, or `letkite-agent route off`). The same holds when the switch is off or no device is chosen.
+- Nothing is routed while routing is off for this router (in the dashboard, with `route = "off"` in the ceiling, or `letkite-agent route off`). The same holds when the switch is off or no device is chosen, and while the agent is paused (**Pause**, or `letkite-agent pause`): the table is removed and made again on resume.
 
-**If the agent stops, the LAN keeps working.** The chosen devices stay in the redirect for 15 seconds at a time, and the running agent renews them every 5 seconds. If the agent is stopped, crashes or hangs, they go straight out again within 15 seconds. A clean stop removes the table at once.
+**If the agent stops, the LAN keeps working.** The chosen devices stay in the redirect for 15 seconds at a time, and the running agent renews them every 5 seconds. If the agent is stopped, crashes or hangs, they go straight out again within 15 seconds. A clean stop removes the table at once, and so does removing the package.
 
 The settings are in `/etc/config/letkite`:
 
@@ -170,7 +170,7 @@ config lanroute 'lan'
 
 `letkite-agent route status` shows a `lan` line: how many devices are routed, or why not.
 
-Not routed yet: UDP (other than refusing QUIC), DNS (devices keep using the router's resolver), and whole interfaces or VLANs. Routing needs fw4 (OpenWrt 22.03 or later). A device on a firewall zone whose input policy is `reject` (a typical guest network) cannot be routed: the redirected connections would be refused.
+Not routed yet: UDP (other than refusing QUIC), DNS (devices keep using the router's resolver), and whole interfaces or VLANs. Routing needs fw4 (OpenWrt 22.03 or later). Only devices on the `lan` firewall zone are routed; LuCI marks a device on another zone (a typical guest network) as not routed. The `lan` zone's input policy must be `accept` (the default), or the redirected connections would be refused; LuCI warns when it is not.
 
 ## Uninstall
 
