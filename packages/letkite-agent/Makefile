@@ -10,7 +10,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=letkite-agent
 PKG_VERSION:=$(shell sed -n 's/^AGENT_VERSION=//p' $(CURDIR)/files/release)
-PKG_RELEASE:=2
+PKG_RELEASE:=3
 
 PKG_MAINTAINER:=LetKite <contact@letkite.com>
 PKG_LICENSE:=MIT
@@ -69,6 +69,9 @@ if [ -e /etc/init.d/letkite-agent ]; then
 	/etc/init.d/letkite-agent disable
 	rm -f /etc/init.d/letkite-agent
 fi
+# LAN routing's redirect table: the agent removes it when it stops; this
+# is the fallback (an agent that could not), so the LAN goes out directly
+command -v nft > /dev/null && nft delete table inet letkite_lan 2> /dev/null
 rm -f /lib/upgrade/keep.d/letkite-agent
 [ "$$(readlink /usr/bin/letkite-agent)" = "$$agent" ] && rm -f /usr/bin/letkite-agent
 # the program (and an update's leftovers); /etc/letkite (node key,

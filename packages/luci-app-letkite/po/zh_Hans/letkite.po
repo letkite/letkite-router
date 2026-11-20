@@ -330,3 +330,96 @@ msgstr "是"
 #: htdocs/luci-static/resources/view/letkite/overview.js:143
 msgid "Pair"
 msgstr "配对"
+
+msgid "(not connected now)"
+msgstr "（当前未连接）"
+
+msgid "A device with a fixed address: its MAC address."
+msgstr "使用固定地址的设备：填它的 MAC 地址。"
+
+msgid "AI tools"
+msgstr "AI 工具"
+
+msgid "Add"
+msgstr "添加"
+
+msgid "Block QUIC"
+msgstr "阻止 QUIC"
+
+msgid "Chosen devices cannot use QUIC (UDP port 443), so browsers use TCP, which the rules apply to. Without this, sites that use QUIC bypass the rules."
+msgstr "选中的设备不能使用 QUIC（UDP 443 端口），浏览器会改用 TCP，规则对 TCP 生效。不勾选时，使用 QUIC 的网站会绕过规则。"
+
+msgid "Devices"
+msgstr "设备"
+
+msgid "Devices you choose here follow your LetKite account's routing rules, without the agent installed on them. Only TCP is routed. If the agent stops, they go out directly again within 15 seconds."
+msgstr "在这里选中的设备不用装 agent，也按 LetKite 账户的分流规则走。只分流 TCP。agent 停止后，15 秒内这些设备恢复直连。"
+
+msgid "IPv4 address"
+msgstr "IPv4 地址"
+
+msgid "LAN"
+msgstr "局域网"
+
+msgid "LAN routing"
+msgstr "局域网分流"
+
+msgid "MAC address"
+msgstr "MAC 地址"
+
+msgid "More about LAN routing"
+msgstr "关于局域网分流"
+
+msgid "Name"
+msgstr "名称"
+
+msgid "No devices have an address from this router yet."
+msgstr "还没有设备从这台路由器获得地址。"
+
+msgid "Other device"
+msgstr "其他设备"
+
+msgid "Route"
+msgstr "分流"
+
+msgid "Route chosen devices"
+msgstr "分流选中的设备"
+
+msgid "Routing"
+msgstr "分流"
+
+msgid "Routing is off for this router. Turn it on in the LetKite dashboard, under Routing; devices chosen here follow it then."
+msgstr "这台路由器的分流是关着的。在 LetKite 控制台的「分流」里打开后，这里选中的设备就按它走。"
+
+msgid "Saved. The agent applies it within 5 seconds."
+msgstr "已保存。agent 会在 5 秒内生效。"
+
+msgid "That is not a MAC address."
+msgstr "这不是 MAC 地址。"
+
+msgid "The agent is not running, so nothing is routed."
+msgstr "agent 没有运行，现在什么都不分流。"
+
+msgid "Their connections follow your account's routing rules. Other devices are not touched."
+msgstr "它们的连接按账户的分流规则走。其他设备不受影响。"
+
+msgid "This agent version cannot route the LAN yet; it will once it updates itself."
+msgstr "这个版本的 agent 还不能分流局域网；它自动更新后就可以。"
+
+msgid "everything"
+msgstr "全部"
+
+msgid "off"
+msgstr "关闭"
+
+msgid "rules"
+msgstr "规则"
+
+msgid "unknown"
+msgstr "未知"
+
+msgid "The firewall zone \"lan\" does not accept input, so chosen devices would lose their TCP connections. Set its input to accept before choosing devices."
+msgstr "防火墙区域“lan”不接受入站连接，所选设备的 TCP 连接会断开。请先把它的入站设为“接受”，再选择设备。"
+
+msgid "Not routed: on the firewall zone \"%s\", not \"lan\"."
+msgstr "不会分流：在防火墙区域“%s”中，不是“lan”。"

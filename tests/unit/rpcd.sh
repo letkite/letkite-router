@@ -17,6 +17,10 @@ export LETKITE_RUN_DIR="$work/run"
 export LETKITE_CONFIG_DIR="$work/etc"
 export LETKITE_LOGREAD="$work/logread"
 export LETKITE_INIT="$work/init.d/letkite-agent"
+export LETKITE_UCI_DIR="$work/config"
+export LETKITE_LEASES="$work/dhcp.leases"
+export LETKITE_IP="$work/ip"
+export LETKITE_NFT="$work/nft"
 mkdir -p "$work/init.d"
 cat > "$LETKITE_INIT" <<'I'
 #!/bin/sh
@@ -61,10 +65,10 @@ valid() { [ "$(jsonfilter -s "$1" -t '@' 2>/dev/null)" = object ]; }
 echo "# list"
 out=$("$plugin" list)
 check "list is a JSON object" valid "$out"
-for m in status claim_status enroll_start enroll_poll pause resume ceiling_get ceiling_set log; do
+for m in status claim_status enroll_start enroll_poll pause resume ceiling_get ceiling_set log lanroute_get lanroute_set; do
 	check "list has $m" [ "$(jsonfilter -s "$out" -t "@.$m")" = object ]
 done
-check_eq "list has nothing else" 9 "$(jsonfilter -s "$out" -e '@.*' | wc -l | tr -d ' ')"
+check_eq "list has nothing else" 11 "$(jsonfilter -s "$out" -e '@.*' | wc -l | tr -d ' ')"
 
 echo "# status"
 out=$(call status)
@@ -75,7 +79,7 @@ check_eq "status: not enrolled" false "$(field "$out" '@.agent.enrolled')"
 check_eq "status: paused_until null passes through" "" "$(field "$out" '@.agent.paused_until')"
 check_eq "status: argv" "status|--json" "$(calls | tail -n 1)"
 check_eq "status: the contract's fields" \
-	"connected enrolled enrollment gateway_url instance last_error name node_id paused paused_until service_running version " \
+	"connected enrolled enrollment gateway_url instance last_error name node_id paused paused_until route service_running version " \
 	"$(keys "$out" '@.agent')"
 check_eq "status: no name before enrolling" "" "$(field "$out" '@.agent.name')"
 
@@ -280,6 +284,123 @@ for bad in '{"name":"a b"}' '{"name":"$(reboot)"}' '{"name":"-x"}' '{"name":"x;y
 	check_eq "enroll_start refuses $bad" false "$(field "$out" '@.ok')"
 done
 check_eq "nothing ran for bad names" "" "$(calls)"
+
+echo "# LAN routing"
+mkdir -p "$LETKITE_UCI_DIR"
+printf "config letkite 'main'\n\toption claim '0'\n" > "$LETKITE_UCI_DIR/letkite"
+cat > "$LETKITE_LEASES" <<'D'
+1790000000 AA:BB:CC:00:00:01 192.168.1.10 phone 01:aa:bb:cc:00:00:01
+1790000000 aa:bb:cc:00:00:02 192.168.1.11 * *
+1790000000 not-a-mac 192.168.1.12 bad *
+1790000000 02:00:00:00:00:03 192.168.2.10 guest-tv *
+1790000000 01:00:5e:00:00:01 192.168.1.13 multicast *
+1790000000 00:00:00:00:00:00 192.168.1.14 zeros *
+D
+# the neighbour table and fw4's input chain, as on a router with a guest zone
+cat > "$LETKITE_IP" <<'I'
+#!/bin/sh
+case "$*" in
+"-4 neigh show")
+	echo "192.168.1.10 dev br-lan lladdr aa:bb:cc:00:00:01 REACHABLE"
+	echo "192.168.2.10 dev br-guest lladdr 02:00:00:00:00:03 STALE"
+	echo "192.168.1.99 dev br-lan  FAILED" ;;
+"-6 neigh show")
+	echo "fe80::1 dev br-guest lladdr AA:BB:CC:00:00:01 router STALE" ;;
+esac
+I
+cat > "$LETKITE_NFT" <<'N'
+#!/bin/sh
+[ "$*" = "list chain inet fw4 input" ] || exit 1
+cat <<'C'
+table inet fw4 {
+	chain input {
+		iifname "lo" accept comment "!fw4: Accept traffic from loopback"
+		iifname "br-lan" jump input_lan comment "!fw4: Handle lan IPv4/IPv6 input traffic"
+		iifname "br-guest" jump input_guest comment "!fw4: Handle guest IPv4/IPv6 input traffic"
+		iifname "eth1" jump input_wan comment "!fw4: Handle wan IPv4/IPv6 input traffic"
+		jump handle_reject
+	}
+}
+C
+N
+chmod +x "$LETKITE_IP" "$LETKITE_NFT"
+cat > "$LETKITE_UCI_DIR/firewall" <<'F'
+config defaults
+	option input 'REJECT'
+
+config zone
+	option name 'lan'
+	option input 'ACCEPT'
+
+config zone 'guest'
+	option name 'guest'
+	option input 'REJECT'
+F
+out=$(call lanroute_get)
+check "lanroute_get is JSON" valid "$out"
+check_eq "off until switched on" false "$(field "$out" '@.enabled')"
+check_eq "QUIC refused by default" true "$(field "$out" '@.block_quic')"
+check_eq "no devices chosen" "" "$(field "$out" '@.clients[*]')"
+check_eq "the leases, lowercase, bad lines and group or zero MACs left out" \
+	"aa:bb:cc:00:00:01 aa:bb:cc:00:00:02 02:00:00:00:00:03 " \
+	"$(field "$out" '@.devices[*].mac' | tr '\n' ' ')"
+check_eq "a lease's name" phone "$(field "$out" '@.devices[0].name')"
+check_eq "no name for *" "" "$(field "$out" '@.devices[1].name')"
+check_eq "a device's zone, by its IPv4 neighbour entry" lan "$(field "$out" '@.devices[0].zone')"
+check_eq "no neighbour entry: no zone" "" "$(field "$out" '@.devices[1].zone')"
+check_eq "a guest device's zone" guest "$(field "$out" '@.devices[2].zone')"
+check_eq "the LAN zone's input policy" ACCEPT "$(field "$out" '@.lan_input')"
+check_eq "the agent answered" true "$(field "$out" '@.answered')"
+check_eq "no answer from the agent at all" "false|false" \
+	"$(FAKE_FAIL=status call lanroute_get | jsonfilter -e '@.answered' -e '@.supported' | tr '\n' '|' | sed 's/|$//')"
+sed -i "s/option input 'ACCEPT'/option input 'REJECT'/" "$LETKITE_UCI_DIR/firewall"
+check_eq "a LAN zone that rejects input" REJECT "$(call lanroute_get | jsonfilter -e '@.lan_input')"
+printf "config defaults\n\toption input 'REJECT'\nconfig zone\n\toption name 'lan'\n" > "$LETKITE_UCI_DIR/firewall"
+check_eq "a zone without its own input policy: the defaults'" REJECT "$(call lanroute_get | jsonfilter -e '@.lan_input')"
+rm "$LETKITE_UCI_DIR/firewall"
+check_eq "the agent routes the LAN" true "$(field "$out" '@.supported')"
+check_eq "its mode" ai-tools "$(field "$out" '@.route.mode')"
+check_has "its LAN line" "$(field "$out" '@.route.lan')" "through port 7892"
+check_eq "an older agent: not supported" false "$(FAKE_ROUTE=absent call lanroute_get | jsonfilter -e '@.supported')"
+check_eq "a service that does not answer: supported, no mode" "true|" \
+	"$(FAKE_ROUTE=null call lanroute_get | jsonfilter -e '@.supported' -e '@.route.mode' | tr '\n' '|' | sed 's/|$//')"
+
+out=$(call lanroute_set '{"enabled":true,"clients":["AA:BB:CC:00:00:01","aa:bb:cc:00:00:01","02:00:00:00:00:09"]}')
+check_eq "lanroute_set: ok" true "$(field "$out" '@.ok')"
+check_eq "duplicates once" 2 "$(field "$out" '@.clients')"
+check_eq "UCI: on" 1 "$(uci -q -c "$LETKITE_UCI_DIR" get letkite.lan.enabled)"
+check_eq "UCI: QUIC refused when not said" 1 "$(uci -q -c "$LETKITE_UCI_DIR" get letkite.lan.block_quic)"
+check_eq "UCI: the devices, lowercase" "aa:bb:cc:00:00:01 02:00:00:00:00:09" "$(uci -q -c "$LETKITE_UCI_DIR" get letkite.lan.client)"
+check_eq "UCI: the section's type" lanroute "$(uci -q -c "$LETKITE_UCI_DIR" get letkite.lan)"
+check_eq "UCI: the rest kept" 0 "$(uci -q -c "$LETKITE_UCI_DIR" get letkite.main.claim)"
+out=$(call lanroute_get)
+check_eq "read back: on" true "$(field "$out" '@.enabled')"
+check_eq "read back: the devices" "aa:bb:cc:00:00:01 02:00:00:00:00:09 " "$(field "$out" '@.clients[*]' | tr '\n' ' ')"
+
+uci -q -c "$LETKITE_UCI_DIR" set letkite.lan.port=7900
+uci -q -c "$LETKITE_UCI_DIR" commit letkite
+out=$(call lanroute_set '{"enabled":false,"block_quic":false,"clients":[]}')
+check_eq "switched off: ok" true "$(field "$out" '@.ok')"
+check_eq "UCI: off" 0 "$(uci -q -c "$LETKITE_UCI_DIR" get letkite.lan.enabled)"
+check_eq "UCI: QUIC allowed" 0 "$(uci -q -c "$LETKITE_UCI_DIR" get letkite.lan.block_quic)"
+check_eq "UCI: no devices" "" "$(uci -q -c "$LETKITE_UCI_DIR" get letkite.lan.client)"
+check_eq "UCI: a port set by hand kept" 7900 "$(uci -q -c "$LETKITE_UCI_DIR" get letkite.lan.port)"
+
+before=$(cat "$LETKITE_UCI_DIR/letkite")
+# shellcheck disable=SC2016
+for bad in '{}' '{"enabled":"yes","clients":[]}' '{"enabled":true}' '{"enabled":true,"clients":"aa:bb:cc:00:00:01"}' \
+	'{"enabled":true,"clients":["aa:bb:cc:00:00:0"]}' '{"enabled":true,"clients":["aa:bb:cc:00:00:01 x"]}' \
+	'{"enabled":true,"clients":["$(reboot)"]}' '{"enabled":true,"clients":[1]}' \
+	'{"enabled":true,"block_quic":"0","clients":[]}' 'not json' \
+	'{"enabled":true,"clients":["01:00:5e:00:00:01"]}' '{"enabled":true,"clients":["ff:ff:ff:ff:ff:ff"]}' \
+	'{"enabled":true,"clients":["00:00:00:00:00:00"]}'; do
+	out=$(call lanroute_set "$bad")
+	check_eq "lanroute_set refuses $bad" false "$(field "$out" '@.ok')"
+done
+many=$(i=0; while [ $i -lt 257 ]; do printf '"02:00:00:00:%02x:%02x",' $((i / 256)) $((i % 256)); i=$((i + 1)); done)
+out=$(call lanroute_set "{\"enabled\":true,\"clients\":[${many%,}]}")
+check_eq "lanroute_set refuses 257 devices" false "$(field "$out" '@.ok')"
+check_eq "nothing written for bad arguments" "$before" "$(cat "$LETKITE_UCI_DIR/letkite")"
 
 echo "# unknown"
 out=$(call reboot)

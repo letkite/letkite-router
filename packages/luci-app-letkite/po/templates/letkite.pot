@@ -1,6 +1,10 @@
 msgid ""
 msgstr "Content-Type: text/plain; charset=UTF-8\n"
 
+#: htdocs/luci-static/resources/view/letkite/lanroute.js:95
+msgid "(not connected now)"
+msgstr ""
+
 #: htdocs/luci-static/resources/view/letkite/overview.js:223
 msgid "1 day"
 msgstr ""
@@ -11,6 +15,10 @@ msgstr ""
 
 #: htdocs/luci-static/resources/view/letkite/overview.js:221
 msgid "30 minutes"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/letkite/lanroute.js:120
+msgid "A device with a fixed address: its MAC address."
 msgstr ""
 
 #: htdocs/luci-static/resources/view/letkite/overview.js:233
@@ -29,8 +37,16 @@ msgstr ""
 msgid "AI assistants on your LetKite account could then move files between this router and the account's other devices directly, not only through LetKite's servers."
 msgstr ""
 
+#: htdocs/luci-static/resources/view/letkite/lanroute.js:27
+msgid "AI tools"
+msgstr ""
+
 #: htdocs/luci-static/resources/view/letkite/permissions.js:25
 msgid "Access points"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/letkite/lanroute.js:119
+msgid "Add"
 msgstr ""
 
 #: htdocs/luci-static/resources/view/letkite/overview.js:76
@@ -49,12 +65,20 @@ msgstr ""
 msgid "Apps on screen"
 msgstr ""
 
+#: htdocs/luci-static/resources/view/letkite/lanroute.js:178
+msgid "Block QUIC"
+msgstr ""
+
 #: htdocs/luci-static/resources/view/letkite/permissions.js:88
 msgid "Cancel"
 msgstr ""
 
 #: htdocs/luci-static/resources/view/letkite/permissions.js:198
 msgid "Changes are written to %s, and the agent restarts to apply them."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/letkite/lanroute.js:181
+msgid "Chosen devices cannot use QUIC (UDP port 443), so browsers use TCP, which the rules apply to. Without this, sites that use QUIC bypass the rules."
 msgstr ""
 
 #: htdocs/luci-static/resources/view/letkite/overview.js:164 htdocs/luci-static/resources/view/letkite/overview.js:279
@@ -75,6 +99,14 @@ msgstr ""
 
 #: htdocs/luci-static/resources/view/letkite/permissions.js:26
 msgid "Crash reports"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/letkite/lanroute.js:185
+msgid "Devices"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/letkite/lanroute.js:194
+msgid "Devices you choose here follow your LetKite account's routing rules, without the agent installed on them. Only TCP is routed. If the agent stops, they go out directly again within 15 seconds."
 msgstr ""
 
 #: htdocs/luci-static/resources/view/letkite/permissions.js:22
@@ -109,6 +141,10 @@ msgstr ""
 msgid "How to edit the ceiling"
 msgstr ""
 
+#: htdocs/luci-static/resources/view/letkite/lanroute.js:101
+msgid "IPv4 address"
+msgstr ""
+
 #: htdocs/luci-static/resources/view/letkite/permissions.js:23
 msgid "Install newer agent releases signed by LetKite."
 msgstr ""
@@ -119,6 +155,14 @@ msgstr ""
 
 #: htdocs/luci-static/resources/view/letkite/permissions.js:49
 msgid "Keep awake"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/letkite/lanroute.js:61
+msgid "LAN"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/letkite/lanroute.js:192 root/usr/share/luci/menu.d/luci-app-letkite.json
+msgid "LAN routing"
 msgstr ""
 
 #: htdocs/luci-static/resources/view/letkite/log.js:33
@@ -141,12 +185,28 @@ msgstr ""
 msgid "Log"
 msgstr ""
 
+#: htdocs/luci-static/resources/view/letkite/lanroute.js:102
+msgid "MAC address"
+msgstr ""
+
 #: htdocs/luci-static/resources/view/letkite/permissions.js:27
 msgid "Mesh network"
 msgstr ""
 
+#: htdocs/luci-static/resources/view/letkite/lanroute.js:196
+msgid "More about LAN routing"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/letkite/lanroute.js:100
+msgid "Name"
+msgstr ""
+
 #: htdocs/luci-static/resources/view/letkite/overview.js:79
 msgid "No"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/letkite/lanroute.js:110
+msgid "No devices have an address from this router yet."
 msgstr ""
 
 #: htdocs/luci-static/resources/view/letkite/log.js:22
@@ -161,6 +221,10 @@ msgstr ""
 msgid "Not connected"
 msgstr ""
 
+#: htdocs/luci-static/resources/view/letkite/lanroute.js:84
+msgid "Not routed: on the firewall zone \"%s\", not \"lan\"."
+msgstr ""
+
 #: htdocs/luci-static/resources/view/letkite/overview.js:81
 msgid "Not running"
 msgstr ""
@@ -171,6 +235,10 @@ msgstr ""
 
 #: htdocs/luci-static/resources/view/letkite/overview.js:159 htdocs/luci-static/resources/view/letkite/overview.js:250
 msgid "Open the dashboard"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/letkite/lanroute.js:112
+msgid "Other device"
 msgstr ""
 
 #: htdocs/luci-static/resources/view/letkite/permissions.js:202
@@ -249,6 +317,22 @@ msgstr ""
 msgid "Resume"
 msgstr ""
 
+#: htdocs/luci-static/resources/view/letkite/lanroute.js:99
+msgid "Route"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/letkite/lanroute.js:173
+msgid "Route chosen devices"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/letkite/lanroute.js:56
+msgid "Routing"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/letkite/lanroute.js:59
+msgid "Routing is off for this router. Turn it on in the LetKite dashboard, under Routing; devices chosen here follow it then."
+msgstr ""
+
 #: htdocs/luci-static/resources/view/letkite/overview.js:81
 msgid "Running"
 msgstr ""
@@ -259,6 +343,10 @@ msgstr ""
 
 #: htdocs/luci-static/resources/view/letkite/permissions.js:125
 msgid "Saved. It applies when the agent next starts."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/letkite/lanroute.js:215
+msgid "Saved. The agent applies it within 5 seconds."
 msgstr ""
 
 #: htdocs/luci-static/resources/view/letkite/permissions.js:116
@@ -297,6 +385,10 @@ msgstr ""
 msgid "Take the environment variables set in the dashboard."
 msgstr ""
 
+#: htdocs/luci-static/resources/view/letkite/lanroute.js:130
+msgid "That is not a MAC address."
+msgstr ""
+
 #: htdocs/luci-static/resources/view/letkite/overview.js:61
 msgid "The LetKite agent is not installed. Reinstall the letkite-agent package."
 msgstr ""
@@ -313,8 +405,12 @@ msgstr ""
 msgid "The agent cannot read %s, and does not start until it is fixed: %s"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/letkite/overview.js:186 htdocs/luci-static/resources/view/letkite/permissions.js:113 htdocs/luci-static/resources/view/letkite/permissions.js:176
+#: htdocs/luci-static/resources/view/letkite/lanroute.js:153 htdocs/luci-static/resources/view/letkite/lanroute.js:213 htdocs/luci-static/resources/view/letkite/overview.js:186 htdocs/luci-static/resources/view/letkite/permissions.js:113 htdocs/luci-static/resources/view/letkite/permissions.js:176
 msgid "The agent did not answer."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/letkite/lanroute.js:53 htdocs/luci-static/resources/view/letkite/lanroute.js:157
+msgid "The agent is not running, so nothing is routed."
 msgstr ""
 
 #: htdocs/luci-static/resources/view/letkite/permissions.js:145
@@ -329,6 +425,10 @@ msgstr ""
 msgid "The environment variables set in the dashboard would then be written on this router, for the commands AI assistants run here."
 msgstr ""
 
+#: htdocs/luci-static/resources/view/letkite/lanroute.js:64
+msgid "The firewall zone \"lan\" does not accept input, so chosen devices would lose their TCP connections. Set its input to accept before choosing devices."
+msgstr ""
+
 #: htdocs/luci-static/resources/view/letkite/permissions.js:211
 msgid "The most AI assistants may ever do on this router, whatever your LetKite account allows."
 msgstr ""
@@ -337,12 +437,20 @@ msgstr ""
 msgid "The most of the file system AI assistants may be granted"
 msgstr ""
 
+#: htdocs/luci-static/resources/view/letkite/lanroute.js:176
+msgid "Their connections follow your account's routing rules. Other devices are not touched."
+msgstr ""
+
 #: htdocs/luci-static/resources/view/letkite/permissions.js:164
 msgid "These are not on/off switches, so LuCI does not change them. Set them in /etc/letkite/ceiling.toml over SSH, then restart the agent."
 msgstr ""
 
 #: htdocs/luci-static/resources/view/letkite/permissions.js:180
 msgid "This agent version cannot change its permissions from LuCI yet; it will once it updates itself. Until then, edit /etc/letkite/ceiling.toml over SSH."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/letkite/lanroute.js:161
+msgid "This agent version cannot route the LAN yet; it will once it updates itself."
 msgstr ""
 
 #: htdocs/luci-static/resources/view/letkite/overview.js:91
@@ -401,6 +509,10 @@ msgstr ""
 msgid "e.g. 45m, 2h, 3d"
 msgstr ""
 
+#: htdocs/luci-static/resources/view/letkite/lanroute.js:29
+msgid "everything"
+msgstr ""
+
 #: htdocs/luci-static/resources/view/letkite/permissions.js:63
 msgid "no"
 msgstr ""
@@ -417,6 +529,10 @@ msgstr ""
 msgid "nothing"
 msgstr ""
 
+#: htdocs/luci-static/resources/view/letkite/lanroute.js:26
+msgid "off"
+msgstr ""
+
 #: htdocs/luci-static/resources/view/letkite/permissions.js:46
 msgid "off, observe or act"
 msgstr ""
@@ -427,6 +543,14 @@ msgstr ""
 
 #: htdocs/luci-static/resources/view/letkite/permissions.js:43
 msgid "off, sandboxed or full"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/letkite/lanroute.js:28
+msgid "rules"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/letkite/lanroute.js:33
+msgid "unknown"
 msgstr ""
 
 #: htdocs/luci-static/resources/view/letkite/permissions.js:63

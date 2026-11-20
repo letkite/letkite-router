@@ -15,7 +15,9 @@
 #
 # FAKE_ENROLL: "ok" (default), "error", or "wait" (stays at the code until
 # $FAKE_AGENT_STATE/approve exists). FAKE_CEILING=invalid: a ceiling the
-# agent cannot read. FAKE_FAIL: a command that fails.
+# agent cannot read. FAKE_FAIL: a command that fails. FAKE_ROUTE: the
+# "route" object of `status --json` (default: routing on, the LAN on);
+# "absent" leaves the key out, as an agent from before LAN routing.
 set -u
 state="${FAKE_AGENT_STATE:?FAKE_AGENT_STATE is not set}"
 mkdir -p "$state"
@@ -51,8 +53,13 @@ status)
 	else
 		node=null name=null gateway=null
 	fi
+	route=',"route":{"mode":"ai-tools","gateway_mode":"ai-tools","lan":"on: TCP of 1 device(s) through port 7892, QUIC refused"}'
+	case "${FAKE_ROUTE:-}" in
+		absent) route='' ;;
+		?*) route=",\"route\":$FAKE_ROUTE" ;;
+	esac
 	cat <<-J
-		{"version":"9.9.9","instance":null,"enrolled":$(flag enrolled),"node_id":$node,"name":$name,"gateway_url":$gateway,"connected":$(flag enrolled),"paused":$(flag paused),"paused_until":$until,"service_running":$(flag installed),"last_error":null,"enrollment":$enrollment}
+		{"version":"9.9.9","instance":null,"enrolled":$(flag enrolled),"node_id":$node,"name":$name,"gateway_url":$gateway,"connected":$(flag enrolled),"paused":$(flag paused),"paused_until":$until,"service_running":$(flag installed),"last_error":null,"enrollment":$enrollment$route}
 	J
 	;;
 enroll)
